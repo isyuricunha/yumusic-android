@@ -15,12 +15,14 @@ object Route {
     const val ALBUM = "album/{albumId}"
     const val PLAYLIST = "playlist/{playlistId}/{playlistName}"
     const val GENRE = "genre/{genreName}"
+    const val FOLDER = "folder/{folderId}/{folderName}"
     const val PLAYER = "player"
 
     fun artist(artistId: String) = "artist/$artistId"
     fun album(albumId: String) = "album/$albumId"
     fun playlist(playlistId: String, playlistName: String) = "playlist/$playlistId/$playlistName"
     fun genre(genreName: String) = "genre/$genreName"
+    fun folder(folderId: String, folderName: String) = "folder/$folderId/$folderName"
 }
 
 data class BottomNavItem(

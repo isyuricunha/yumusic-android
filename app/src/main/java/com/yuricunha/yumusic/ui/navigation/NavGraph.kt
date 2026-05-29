@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.yuricunha.yumusic.ui.screens.album.AlbumScreen
 import com.yuricunha.yumusic.ui.screens.artist.ArtistScreen
+import com.yuricunha.yumusic.ui.screens.folder.FolderScreen
 import com.yuricunha.yumusic.ui.screens.genre.GenreSongsScreen
 import com.yuricunha.yumusic.ui.screens.home.HomeScreen
 import com.yuricunha.yumusic.ui.screens.library.LibraryScreen
@@ -40,6 +41,9 @@ fun NavGraph(
                     },
                     onSettingsClick = {
                         navController.navigate(Route.SETTINGS)
+                    },
+                    onFolderClick = { folderId, folderName ->
+                        navController.navigate(Route.folder(folderId, folderName))
                     },
                 )
             }
@@ -99,13 +103,28 @@ fun NavGraph(
                     navArgument("albumId") { type = NavType.StringType },
                 ),
             ) {
-                AlbumScreen(
+                GenreSongsScreen(
                     onBackClick = { navController.popBackStack() },
                     onNavigateToPlayer = {
                         navController.navigate(Route.PLAYER)
                     },
-                    onArtistClick = { artistId ->
-                        navController.navigate(Route.artist(artistId))
+                )
+            }
+
+            composable(
+                route = Route.FOLDER,
+                arguments = listOf(
+                    navArgument("folderId") { type = NavType.StringType },
+                    navArgument("folderName") { type = NavType.StringType },
+                ),
+            ) {
+                FolderScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onFolderClick = { folderId, folderName ->
+                        navController.navigate(Route.folder(folderId, folderName))
+                    },
+                    onTrackClick = { trackId ->
+                        navController.navigate(Route.PLAYER)
                     },
                 )
             }

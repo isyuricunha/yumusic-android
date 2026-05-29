@@ -217,4 +217,103 @@ interface SubsonicApiService {
         @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<SubsonicStatus>
+
+    // ── Music Folders ────────────────────────────────────────────────────
+    @GET("rest/getMusicFolders")
+    suspend fun getMusicFolders(
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<MusicFoldersResponse>
+
+    // ── Folder / Directory browsing ──────────────────────────────────────
+    @GET("rest/getMusicDirectory")
+    suspend fun getMusicDirectory(
+        @Query("id") dirId: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<DirectoryResponse>
+
+    // ── Bookmarks ────────────────────────────────────────────────────────
+    @GET("rest/getBookmarks")
+    suspend fun getBookmarks(
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<BookmarksResponse>
+
+    @GET("rest/createBookmark")
+    suspend fun createBookmark(
+        @Query("id") trackId: String,
+        @Query("position") position: Long,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SubsonicStatus>
+
+    @GET("rest/deleteBookmark")
+    suspend fun deleteBookmark(
+        @Query("id") trackId: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SubsonicStatus>
+
+    // ── Random Songs ─────────────────────────────────────────────────────
+    @GET("rest/getRandomSongs")
+    suspend fun getRandomSongs(
+        @Query("size") size: Int = 10,
+        @Query("genre") genre: String? = null,
+        @Query("fromYear") fromYear: Int? = null,
+        @Query("toYear") toYear: Int? = null,
+        @Query("musicFolderId") musicFolderId: String? = null,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<RandomSongsResponse>
+
+    // ── Similar Songs ────────────────────────────────────────────────────
+    @GET("rest/getSimilarSongs2")
+    suspend fun getSimilarSongs2(
+        @Query("id") trackId: String,
+        @Query("count") count: Int = 10,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SimilarSongsResponse>
+
+    // ── Now Playing ──────────────────────────────────────────────────────
+    @GET("rest/getNowPlaying")
+    suspend fun getNowPlaying(
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<NowPlayingResponse>
+
+    // ── Internet Radio ───────────────────────────────────────────────────
+    @GET("rest/getInternetRadioStations")
+    suspend fun getInternetRadioStations(
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<InternetRadioStationsResponse>
 }

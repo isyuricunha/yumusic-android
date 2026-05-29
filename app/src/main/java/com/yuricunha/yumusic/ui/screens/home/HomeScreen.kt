@@ -61,6 +61,7 @@ fun HomeScreen(
     onArtistClick: (String) -> Unit = {},
     onAlbumClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
+    onFolderClick: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -105,6 +106,7 @@ fun HomeScreen(
                     onArtistClick = onArtistClick,
                     onAlbumClick = onAlbumClick,
                     onSettingsClick = onSettingsClick,
+                    onFolderClick = onFolderClick,
                     getCoverArtUrl = viewModel::getCoverArtUrl,
                 )
             }
@@ -119,6 +121,7 @@ private fun HomeContent(
     onArtistClick: (String) -> Unit,
     onAlbumClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
+    onFolderClick: (String, String) -> Unit = { _, _ -> },
     getCoverArtUrl: (String?) -> String?,
 ) {
     LazyColumn(
@@ -217,6 +220,20 @@ private fun HomeContent(
                                 style = MaterialTheme.typography.labelLarge,
                                 color = Background,
                                 fontWeight = FontWeight.Medium,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(TextPrimary.copy(alpha = 0.1f))
+                                .clickable { onFolderClick("0", "Music") }
+                                .padding(horizontal = 24.dp, vertical = 8.dp),
+                        ) {
+                            Text(
+                                text = "Browse Files",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = TextSecondary,
                             )
                         }
                     }

@@ -239,3 +239,123 @@ data class TopSongsResponse(
     @SerializedName("error") val error: SubsonicError?,
     @SerializedName("topSongs") val topSongs: SongList?,
 )
+
+// ── getMusicFolders ─────────────────────────────────────────────────────
+data class MusicFoldersResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("musicFolders") val musicFolders: MusicFolderList?,
+)
+
+data class MusicFolderList(
+    @SerializedName("musicFolder") val folders: List<MusicFolderDto>?,
+)
+
+data class MusicFolderDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String?,
+)
+
+// ── getMusicDirectory (folder browsing) ─────────────────────────────────
+data class DirectoryResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("directory") val directory: DirectoryDto?,
+)
+
+data class DirectoryDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("parent") val parent: String?,
+    @SerializedName("child") val children: List<DirectoryChild>?,
+)
+
+data class DirectoryChild(
+    @SerializedName("id") val id: String,
+    @SerializedName("title") val title: String?,
+    @SerializedName("isDir") val isDir: Boolean,
+    @SerializedName("artist") val artist: String?,
+    @SerializedName("album") val album: String?,
+    @SerializedName("coverArt") val coverArt: String?,
+    @SerializedName("duration") val duration: Int?,
+    @SerializedName("track") val trackNumber: Int?,
+    @SerializedName("year") val year: Int?,
+    @SerializedName("genre") val genre: String?,
+    @SerializedName("size") val size: Long?,
+    @SerializedName("contentType") val contentType: String?,
+    @SerializedName("suffix") val suffix: String?,
+)
+
+// ── getBookmarks ────────────────────────────────────────────────────────
+data class BookmarksResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("bookmarks") val bookmarks: BookmarkList?,
+)
+
+data class BookmarkList(
+    @SerializedName("bookmark") val bookmarks: List<BookmarkDto>?,
+)
+
+data class BookmarkDto(
+    @SerializedName("position") val position: Long,
+    @SerializedName("username") val username: String?,
+    @SerializedName("comment") val comment: String?,
+    @SerializedName("created") val created: String?,
+    @SerializedName("changed") val changed: String?,
+    @SerializedName("entry") val entry: TrackDto?,
+)
+
+// ── getRandomSongs ──────────────────────────────────────────────────────
+data class RandomSongsResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("randomSongs") val randomSongs: SongList?,
+)
+
+// ── getSimilarSongs2 ────────────────────────────────────────────────────
+data class SimilarSongsResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("similarSongs") val similarSongs: SongList?,
+)
+
+// ── getNowPlaying ───────────────────────────────────────────────────────
+data class NowPlayingResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("nowPlaying") val nowPlaying: NowPlayingList?,
+)
+
+data class NowPlayingList(
+    @SerializedName("entry") val entries: List<NowPlayingEntry>?,
+)
+
+data class NowPlayingEntry(
+    @SerializedName("id") val id: String,
+    @SerializedName("title") val title: String,
+    @SerializedName("artist") val artist: String?,
+    @SerializedName("album") val album: String?,
+    @SerializedName("username") val username: String?,
+    @SerializedName("minutesAgo") val minutesAgo: Int?,
+    @SerializedName("playerId") val playerId: Int?,
+    @SerializedName("playerName") val playerName: String?,
+)
+
+// ── getInternetRadioStations ────────────────────────────────────────────
+data class InternetRadioStationsResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("internetRadioStations") val stations: InternetRadioStationList?,
+)
+
+data class InternetRadioStationList(
+    @SerializedName("internetRadioStation") val stations: List<InternetRadioStationDto>?,
+)
+
+data class InternetRadioStationDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("streamUrl") val streamUrl: String,
+    @SerializedName("homePageUrl") val homePageUrl: String?,
+)

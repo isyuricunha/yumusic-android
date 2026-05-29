@@ -3,8 +3,13 @@ package com.yuricunha.yumusic.data.repository
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.data.api.ArtistInfo
+import com.yuricunha.yumusic.data.api.BookmarkDto
+import com.yuricunha.yumusic.data.api.DirectoryDto
 import com.yuricunha.yumusic.data.api.GenreDto
+import com.yuricunha.yumusic.data.api.InternetRadioStationDto
 import com.yuricunha.yumusic.data.api.LyricsData
+import com.yuricunha.yumusic.data.api.MusicFolderDto
+import com.yuricunha.yumusic.data.api.NowPlayingEntry
 import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.StarredItems
 import com.yuricunha.yumusic.data.api.SubsonicApiService
@@ -447,6 +452,120 @@ class SubsonicRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    // ── Music Folders ────────────────────────────────────────────────────
+
+    suspend fun getMusicFolders(): Result<List<MusicFolderDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getMusicFolders(username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.musicFolders?.folders ?: emptyList())
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    // ── Directory browsing ───────────────────────────────────────────────
+
+    suspend fun getMusicDirectory(dirId: String): Result<DirectoryDto> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getMusicDirectory(dirId = dirId, username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            val dir = response.response?.directory ?: return Result.failure(Exception("Directory not found"))
+            Result.success(dir)
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    // ── Bookmarks ────────────────────────────────────────────────────────
+
+    suspend fun getBookmarks(): Result<List<BookmarkDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getBookmarks(username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.bookmarks?.bookmarks ?: emptyList())
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    suspend fun createBookmark(trackId: String, position: Long): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.createBookmark(trackId = trackId, position = position, username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    suspend fun deleteBookmark(trackId: String): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.deleteBookmark(trackId = trackId, username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    // ── Random Songs ─────────────────────────────────────────────────────
+
+    suspend fun getRandomSongs(size: Int = 10): Result<List<TrackDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getRandomSongs(size = size, username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.randomSongs?.songs ?: emptyList())
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    // ── Similar Songs ────────────────────────────────────────────────────
+
+    suspend fun getSimilarSongs(trackId: String, count: Int = 10): Result<List<TrackDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getSimilarSongs2(trackId = trackId, count = count, username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.similarSongs?.songs ?: emptyList())
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    // ── Now Playing ──────────────────────────────────────────────────────
+
+    suspend fun getNowPlaying(): Result<List<NowPlayingEntry>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getNowPlaying(username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.nowPlaying?.entries ?: emptyList())
+        } catch (e: Exception) { Result.failure(e) }
+    }
+
+    // ── Internet Radio ───────────────────────────────────────────────────
+
+    suspend fun getInternetRadioStations(): Result<List<InternetRadioStationDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getInternetRadioStations(username = config.username, password = config.password)
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.stations?.stations ?: emptyList())
+        } catch (e: Exception) { Result.failure(e) }
     }
 
     fun getStreamUrl(trackId: String): String {
