@@ -90,7 +90,7 @@ class SubsonicRepository @Inject constructor(
         }
     }
 
-    suspend fun getTracksByAlbum(albumId: String): Result<List<TrackDto>> {
+    suspend fun getTracksByAlbum(albumId: String): Result<Triple<String, String, List<TrackDto>>> {
         val config = getConfig()
         if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
         return try {
@@ -101,14 +101,19 @@ class SubsonicRepository @Inject constructor(
             )
             val error = response.response?.error
             if (error != null) return Result.failure(Exception(error.message))
-            val songs = response.response?.album?.songs ?: emptyList()
+            val albumDetail = response.response?.album
+            val songs = albumDetail?.songs ?: emptyList()
+            val albumName = albumDetail?.name ?: songs.firstOrNull()?.album ?: ""
+            val artistName = albumDetail?.artist ?: songs.firstOrNull()?.artist ?: ""
             // Cache to Room
             trackDao.insertAll(songs.map { it.toEntity() })
-            Result.success(songs)
+            Result.success(Triple(albumName, artistName, songs))
         } catch (e: Exception) {
             val cached = trackDao.getByAlbumId(albumId).first()
             if (cached.isNotEmpty()) {
-                Result.success(cached.map { it.toDto() })
+                val name = cached.firstOrNull()?.album ?: ""
+                val artist = cached.firstOrNull()?.artist ?: ""
+                Result.success(Triple(name, artist, cached.map { it.toDto() }))
             } else {
                 Result.failure(e)
             }
