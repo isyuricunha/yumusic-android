@@ -101,3 +101,15 @@ data class SearchResult3(
     @SerializedName("album") val albums: List<AlbumDto>?,
     @SerializedName("song") val songs: List<TrackDto>?,
 )
+
+// ── getAlbumList2 (random / recent / frequent albums) ──────────────────────
+// JSON: { "subsonic-response": { "status": "ok", "albumList2": { "album": [...] } } }
+data class AlbumList2Response(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("albumList2") val albumList: AlbumList2?,
+)
+
+data class AlbumList2(
+    @SerializedName("album") val albums: List<AlbumDto>?,
+)

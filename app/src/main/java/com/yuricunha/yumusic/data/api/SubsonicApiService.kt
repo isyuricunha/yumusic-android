@@ -5,12 +5,17 @@ import retrofit2.http.Query
 
 interface SubsonicApiService {
 
+    companion object {
+        const val API_VERSION = "1.16.1"
+        const val CLIENT_NAME = "yumusic"
+    }
+
     @GET("rest/getArtists")
     suspend fun getArtists(
         @Query("u") username: String,
         @Query("p") password: String,
-        @Query("v") version: String = "1.16.1",
-        @Query("c") client: String = "yumusic",
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<ArtistsResponse>
 
@@ -19,8 +24,8 @@ interface SubsonicApiService {
         @Query("id") artistId: String,
         @Query("u") username: String,
         @Query("p") password: String,
-        @Query("v") version: String = "1.16.1",
-        @Query("c") client: String = "yumusic",
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<ArtistResponse>
 
@@ -29,8 +34,8 @@ interface SubsonicApiService {
         @Query("id") albumId: String,
         @Query("u") username: String,
         @Query("p") password: String,
-        @Query("v") version: String = "1.16.1",
-        @Query("c") client: String = "yumusic",
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<AlbumResponse>
 
@@ -42,8 +47,20 @@ interface SubsonicApiService {
         @Query("songCount") songCount: Int = 10,
         @Query("u") username: String,
         @Query("p") password: String,
-        @Query("v") version: String = "1.16.1",
-        @Query("c") client: String = "yumusic",
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<Search3Response>
+
+    @GET("rest/getAlbumList2")
+    suspend fun getAlbumList2(
+        @Query("type") type: String = "alphabeticalByName",
+        @Query("size") size: Int = 20,
+        @Query("offset") offset: Int = 0,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<AlbumList2Response>
 }

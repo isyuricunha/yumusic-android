@@ -136,6 +136,24 @@ class SubsonicRepository @Inject constructor(
         }
     }
 
+    suspend fun getRandomAlbums(size: Int = 20): Result<List<AlbumDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getAlbumList2(
+                type = "random",
+                size = size,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.albumList?.albums ?: emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun getStreamUrl(trackId: String): String {
         val config = getCachedConfig() ?: return "http://placeholder.example.com/rest/stream?id=$trackId"
         return "${buildBaseUrl(config)}/rest/stream?id=$trackId"

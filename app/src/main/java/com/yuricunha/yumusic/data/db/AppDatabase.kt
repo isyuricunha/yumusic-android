@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase
         AlbumEntity::class,
         TrackEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

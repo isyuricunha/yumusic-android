@@ -1,5 +1,6 @@
 package com.yuricunha.yumusic.di
 
+import com.yuricunha.yumusic.data.api.SubsonicApiService
 import com.yuricunha.yumusic.data.repository.ServerConfig
 import com.yuricunha.yumusic.data.repository.SettingsRepository
 import dagger.Module
@@ -60,8 +61,8 @@ class SubsonicAuthInterceptor @Inject constructor(
                 val newUrl = url.newBuilder()
                     .addQueryParameter("u", config.username)
                     .addQueryParameter("p", config.password)
-                    .addQueryParameter("v", "1.16.1")
-                    .addQueryParameter("c", "yumusic")
+                    .addQueryParameter("v", SubsonicApiService.API_VERSION)
+                    .addQueryParameter("c", SubsonicApiService.CLIENT_NAME)
                     .build()
                 val newRequest = originalRequest.newBuilder()
                     .url(newUrl)
