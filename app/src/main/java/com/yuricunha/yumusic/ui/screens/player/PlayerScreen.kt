@@ -203,25 +203,25 @@ fun PlayerScreenContent(
             // Shuffle toggle
             IconButton(
                 onClick = onToggleShuffle,
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     imageVector = if (shuffleModeEnabled) Icons.Filled.ShuffleOn else Icons.Filled.Shuffle,
                     contentDescription = stringResource(R.string.player_shuffle),
-                    tint = if (shuffleModeEnabled) PrimaryAccent else TextPrimary,
-                    modifier = Modifier.size(24.dp),
+                    tint = if (shuffleModeEnabled) PrimaryAccent else TextSecondary,
+                    modifier = Modifier.size(20.dp),
                 )
             }
 
             IconButton(
                 onClick = onPreviousClick,
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     imageVector = Icons.Filled.SkipPrevious,
                     contentDescription = stringResource(R.string.player_previous),
                     tint = TextPrimary,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(26.dp),
                 )
             }
 
@@ -229,9 +229,9 @@ fun PlayerScreenContent(
             IconButton(
                 onClick = onPlayPauseClick,
                 modifier = Modifier
-                    .size(64.dp)
+                    .size(56.dp)
                     .clip(CircleShape)
-                    .background(PrimaryAccent),
+                    .background(TextPrimary),
             ) {
                 Icon(
                     imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -240,27 +240,27 @@ fun PlayerScreenContent(
                     } else {
                         stringResource(R.string.player_play)
                     },
-                    tint = TextPrimary,
-                    modifier = Modifier.size(36.dp),
+                    tint = Background,
+                    modifier = Modifier.size(28.dp),
                 )
             }
 
             IconButton(
                 onClick = onNextClick,
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     imageVector = Icons.Filled.SkipNext,
                     contentDescription = stringResource(R.string.player_next),
                     tint = TextPrimary,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(26.dp),
                 )
             }
 
             // Repeat mode toggle
             IconButton(
                 onClick = onCycleRepeat,
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(40.dp),
             ) {
                 Icon(
                     imageVector = when (repeatMode) {
@@ -268,12 +268,12 @@ fun PlayerScreenContent(
                         else -> Icons.Filled.Repeat
                     },
                     contentDescription = stringResource(R.string.player_repeat),
-                    tint = if (repeatMode != Player.REPEAT_MODE_OFF) PrimaryAccent else TextPrimary,
-                    modifier = Modifier.size(24.dp),
+                    tint = if (repeatMode != Player.REPEAT_MODE_OFF) PrimaryAccent else TextSecondary,
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }

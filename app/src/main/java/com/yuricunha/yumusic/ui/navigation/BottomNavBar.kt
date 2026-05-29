@@ -9,10 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.yuricunha.yumusic.ui.theme.ActiveSelected
 import com.yuricunha.yumusic.ui.theme.BackgroundElevated
 import com.yuricunha.yumusic.ui.theme.TextPrimary
-import com.yuricunha.yumusic.ui.theme.TextSecondary
 import com.yuricunha.yumusic.ui.theme.TextTertiary
 
 @Composable
@@ -22,7 +20,7 @@ fun BottomNavBar(
 ) {
     NavigationBar(
         containerColor = BackgroundElevated,
-        contentColor = TextSecondary,
+        contentColor = TextTertiary,
         tonalElevation = 0.dp,
     ) {
         bottomNavItems.forEach { item ->
@@ -56,7 +54,7 @@ fun BottomNavBar(
                     unselectedIconColor = TextTertiary,
                     selectedTextColor = TextPrimary,
                     unselectedTextColor = TextTertiary,
-                    indicatorColor = ActiveSelected,
+                    indicatorColor = TextPrimary.copy(alpha = 0.08f),
                 ),
             )
         }
