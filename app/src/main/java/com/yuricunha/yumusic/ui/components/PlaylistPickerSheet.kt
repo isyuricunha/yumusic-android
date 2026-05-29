@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LibraryMusic
@@ -55,6 +55,7 @@ fun PlaylistPickerSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(bottom = 32.dp),
         ) {
             Text(
@@ -87,37 +88,32 @@ fun PlaylistPickerSheet(
 
             if (playlists.isNotEmpty()) {
                 HorizontalDivider(color = Divider, thickness = 0.5.dp)
-            }
-
-            items(playlists) { playlist ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onDismiss(); onSelectPlaylist(playlist) }
-                        .padding(horizontal = 20.dp, vertical = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.LibraryMusic,
-                        contentDescription = null,
-                        tint = TextSecondary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                    Spacer(Modifier.width(16.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = playlist.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = TextPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                playlists.forEach { playlist ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onDismiss(); onSelectPlaylist(playlist) }
+                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.LibraryMusic,
+                            contentDescription = null,
+                            tint = TextSecondary,
+                            modifier = Modifier.size(22.dp),
                         )
-                        playlist.songCount?.let {
+                        Spacer(Modifier.width(16.dp))
+                        Column(Modifier.weight(1f)) {
                             Text(
-                                text = "$it tracks",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextTertiary,
+                                text = playlist.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = TextPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
+                            playlist.songCount?.let { count ->
+                                Text(text = "$count tracks", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                            }
                         }
                     }
                 }

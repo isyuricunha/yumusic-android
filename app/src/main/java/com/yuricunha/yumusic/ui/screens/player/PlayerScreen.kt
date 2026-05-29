@@ -19,12 +19,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.TextSnippet  // lyrics icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -137,6 +139,17 @@ fun PlayerScreenContent(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = Background,
             ),
+            actions = {
+                if (!lyrics.isNullOrEmpty()) {
+                    IconButton(onClick = onToggleLyrics) {
+                        Icon(
+                            imageVector = Icons.Filled.TextSnippet,
+                            contentDescription = "Lyrics",
+                            tint = if (showLyrics) PrimaryAccent else TextSecondary,
+                        )
+                    }
+                }
+            },
         )
 
         // MASSIVE artwork — the hero element, like Tidal
