@@ -17,6 +17,8 @@ import com.yuricunha.yumusic.ui.screens.home.HomeScreen
 import com.yuricunha.yumusic.ui.screens.library.LibraryScreen
 import com.yuricunha.yumusic.ui.screens.player.PlayerScreen
 import com.yuricunha.yumusic.ui.screens.playlist.PlaylistScreen
+import com.yuricunha.yumusic.ui.screens.playlists.PlaylistsScreen
+import com.yuricunha.yumusic.ui.screens.radio.RadioTabScreen
 import com.yuricunha.yumusic.ui.screens.radio.RadioScreen
 import com.yuricunha.yumusic.ui.screens.search.SearchScreen
 import com.yuricunha.yumusic.ui.screens.settings.SettingsScreen
@@ -49,6 +51,14 @@ fun NavGraph(
                 )
             }
 
+            composable(Route.PLAYLISTS) {
+                PlaylistsScreen(
+                    onPlaylistClick = { playlistId, playlistName ->
+                        navController.navigate(Route.playlist(playlistId, playlistName))
+                    },
+                )
+            }
+
             composable(Route.LIBRARY) {
                 LibraryScreen(
                     onArtistClick = { artistId ->
@@ -65,6 +75,15 @@ fun NavGraph(
                     },
                     onRadioClick = {
                         navController.navigate(Route.RADIO)
+                    },
+                )
+            }
+
+            composable(Route.RADIO_TAB) {
+                RadioTabScreen(
+                    onPlayStation = { name, url ->
+                        // Play station via PlayerConnection
+                        navController.navigate(Route.PLAYER)
                     },
                 )
             }
@@ -110,35 +129,14 @@ fun NavGraph(
                     navArgument("albumId") { type = NavType.StringType },
                 ),
             ) {
-                GenreSongsScreen(
+                AlbumScreen(
                     onBackClick = { navController.popBackStack() },
                     onNavigateToPlayer = {
                         navController.navigate(Route.PLAYER)
                     },
-                )
-            }
-
-            composable(
-                route = Route.FOLDER,
-                arguments = listOf(
-                    navArgument("folderId") { type = NavType.StringType },
-                    navArgument("folderName") { type = NavType.StringType },
-                ),
-            ) {
-                FolderScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onFolderClick = { folderId, folderName ->
-                        navController.navigate(Route.folder(folderId, folderName))
+                    onArtistClick = { artistId ->
+                        navController.navigate(Route.artist(artistId))
                     },
-                    onTrackClick = { trackId ->
-                        navController.navigate(Route.PLAYER)
-                    },
-                )
-            }
-
-            composable(Route.RADIO) {
-                RadioScreen(
-                    onBackClick = { navController.popBackStack() },
                 )
             }
 

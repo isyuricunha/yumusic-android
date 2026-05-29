@@ -8,6 +8,8 @@
     <string name="nav_library">Biblioteca</string>
     <string name="nav_search">Buscar</string>
     <string name="nav_back">Voltar</string>
+    <string name="nav_playlists">Playlists</string>
+    <string name="nav_radio">Rádio</string>
 
     <!-- Screens -->
     <string name="screen_home">Início</string>
