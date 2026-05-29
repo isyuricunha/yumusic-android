@@ -19,9 +19,13 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -61,6 +65,7 @@ fun LibraryScreen(
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (String) -> Unit = {},
+    onFolderClick: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -71,6 +76,7 @@ fun LibraryScreen(
         onArtistClick = onArtistClick,
         onPlaylistClick = onPlaylistClick,
         onGenreClick = onGenreClick,
+        onFolderClick = onFolderClick,
         onRetry = viewModel::loadContent,
         getCoverArtUrl = viewModel::getCoverArtUrl,
         modifier = modifier,
@@ -84,6 +90,7 @@ fun LibraryScreenContent(
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String, String) -> Unit,
     onGenreClick: (String) -> Unit = {},
+    onFolderClick: (String, String) -> Unit = { _, _ -> },
     onRetry: () -> Unit,
     getCoverArtUrl: (String?) -> String?,
     modifier: Modifier = Modifier,
@@ -324,6 +331,32 @@ fun LibraryScreenContent(
                             }
                         }
 
+                        // Browse section
+                        item(key = "browse") {
+                            Box {
+                                Column {
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    Text("Browse", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
+                                    Spacer(Modifier.height(8.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SurfaceCard).clickable { onFolderClick("0", "Music") }.padding(horizontal = 20.dp, vertical = 16.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Icon(Icons.Filled.Folder, null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
+                                                Spacer(Modifier.height(6.dp))
+                                                Text("Files", style = MaterialTheme.typography.bodySmall, color = TextPrimary)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // Artists section
                         if (hasArtists) {
                             item {
@@ -382,5 +415,5 @@ fun LibraryScreenContent(
             }
         }
     }
-}
+} // End LibraryScreenContent
 }

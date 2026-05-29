@@ -46,6 +46,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.AlbumDto
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
 import com.yuricunha.yumusic.ui.screens.artist.viewmodel.ArtistViewModel
 import com.yuricunha.yumusic.ui.theme.Background
@@ -191,6 +192,7 @@ fun ArtistScreen(
 
                     // Biography section
                     val bio = uiState.biography
+                    val topSongs = uiState.topSongs
                     if (!bio.isNullOrBlank()) {
                         item {
                             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -208,6 +210,63 @@ fun ArtistScreen(
                                     maxLines = 5,
                                     overflow = TextOverflow.Ellipsis,
                                 )
+                            }
+                        }
+                    }
+
+                    // Top Songs section
+                    if (topSongs.isNotEmpty()) {
+                        item {
+                            Column {
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "Top Songs",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = TextPrimary,
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                        }
+                        topSongs.take(5).forEach { track ->
+                            item {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { viewModel.playAll() }
+                                        .padding(horizontal = 20.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    AlbumArt(
+                                        coverArtUrl = viewModel.getCoverArtUrl(track.coverArt),
+                                        contentDescription = track.title,
+                                        modifier = Modifier.size(40.dp),
+                                        cornerRadius = 4.dp,
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(
+                                            text = track.title,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = TextPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                    }
+                                    val dur = track.duration ?: 0
+                                    Text(
+                                        text = "${dur / 60}:${(dur % 60).toString().padStart(2, '0')}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = TextTertiary,
+                                    )
+                                }
                             }
                         }
                     }
