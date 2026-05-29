@@ -12,8 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
@@ -65,6 +66,8 @@ fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
 ) {
     val playerState by viewModel.playerState.collectAsState()
+    val lyrics by viewModel.lyrics.collectAsState()
+    val showLyrics by viewModel.showLyrics.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.connect()
@@ -78,6 +81,9 @@ fun PlayerScreen(
         progress = playerState.progress,
         shuffleModeEnabled = playerState.shuffleModeEnabled,
         repeatMode = playerState.repeatMode,
+        lyrics = lyrics,
+        showLyrics = showLyrics,
+        onToggleLyrics = viewModel::toggleLyrics,
         onPlayPauseClick = viewModel::playPause,
         onNextClick = viewModel::skipToNext,
         onPreviousClick = viewModel::skipToPrevious,
@@ -99,6 +105,9 @@ fun PlayerScreenContent(
     progress: Float,
     shuffleModeEnabled: Boolean = false,
     repeatMode: Int = Player.REPEAT_MODE_OFF,
+    lyrics: String? = null,
+    showLyrics: Boolean = false,
+    onToggleLyrics: () -> Unit = {},
     onPlayPauseClick: () -> Unit,
     onNextClick: () -> Unit,
     onPreviousClick: () -> Unit,
@@ -138,14 +147,32 @@ fun PlayerScreenContent(
                 .padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center,
         ) {
-            AlbumArt(
-                coverArtUrl = coverArtUrl,
-                contentDescription = title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-                cornerRadius = 8.dp,
-            )
+            if (showLyrics && !lyrics.isNullOrEmpty()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = lyrics,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            } else {
+                AlbumArt(
+                    coverArtUrl = coverArtUrl,
+                    contentDescription = title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f),
+                    cornerRadius = 8.dp,
+                )
+            }
         }
 
         // Track info
