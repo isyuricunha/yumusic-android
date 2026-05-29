@@ -44,6 +44,8 @@
     <string name="player_next">Próxima</string>
     <string name="player_play">Tocar</string>
     <string name="player_pause">Pausar</string>
+    <string name="player_shuffle">Aleatório</string>
+    <string name="player_repeat">Repetir</string>
     <string name="player_time_current">1:12</string>
     <string name="player_time_total">3:42</string>
 

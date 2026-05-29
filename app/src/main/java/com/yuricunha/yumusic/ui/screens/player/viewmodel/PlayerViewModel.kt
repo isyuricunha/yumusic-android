@@ -36,15 +36,23 @@ class PlayerViewModel @Inject constructor(
         playerConnection.playPause()
     }
 
+    fun seekToProgress(progress: Float) {
+        playerConnection.seekToProgress(progress)
+    }
+
+    fun toggleShuffle() {
+        playerConnection.toggleShuffle()
+    }
+
+    fun cycleRepeatMode() {
+        playerConnection.cycleRepeatMode()
+    }
+
     fun skipToNext() {
         playerConnection.skipToNext()
     }
 
     fun skipToPrevious() {
         playerConnection.skipToPrevious()
-    }
-
-    fun seekToProgress(progress: Float) {
-        playerConnection.seekToProgress(progress)
     }
 }

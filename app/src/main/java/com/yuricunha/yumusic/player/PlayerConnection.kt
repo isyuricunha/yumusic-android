@@ -30,6 +30,10 @@ data class PlayerUiState(
     val duration: Long = 0L,
     val currentPosition: Long = 0L,
     val isAvailable: Boolean = false,
+    val repeatMode: Int = Player.REPEAT_MODE_OFF,
+    val shuffleModeEnabled: Boolean = false,
+    val queueSize: Int = 0,
+    val currentQueueIndex: Int = 0,
 )
 
 @Singleton
@@ -103,6 +107,14 @@ class PlayerConnection @Inject constructor(
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
             updateState()
         }
+
+        override fun onRepeatModeChanged(repeatMode: Int) {
+            updateState()
+        }
+
+        override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+            updateState()
+        }
     }
 
     private fun updateState() {
@@ -120,6 +132,10 @@ class PlayerConnection @Inject constructor(
                 duration = player.duration,
                 currentPosition = player.currentPosition,
                 isAvailable = true,
+                repeatMode = player.repeatMode,
+                shuffleModeEnabled = player.shuffleModeEnabled,
+                queueSize = player.mediaItemCount,
+                currentQueueIndex = player.currentMediaItemIndex,
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error updating player state", e)
@@ -163,6 +179,28 @@ class PlayerConnection @Inject constructor(
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error seeking to progress", e)
+        }
+    }
+
+    fun toggleShuffle() {
+        val player = mediaController ?: return
+        try {
+            player.shuffleModeEnabled = !player.shuffleModeEnabled
+        } catch (e: Exception) {
+            Log.e(TAG, "Error toggling shuffle", e)
+        }
+    }
+
+    fun cycleRepeatMode() {
+        val player = mediaController ?: return
+        try {
+            player.repeatMode = when (player.repeatMode) {
+                Player.REPEAT_MODE_OFF -> Player.REPEAT_MODE_ALL
+                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                else -> Player.REPEAT_MODE_OFF
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cycling repeat mode", e)
         }
     }
 

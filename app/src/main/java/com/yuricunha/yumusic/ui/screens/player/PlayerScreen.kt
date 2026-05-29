@@ -18,6 +18,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.media3.common.Player
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.ui.components.AlbumArt
 import com.yuricunha.yumusic.ui.screens.player.viewmodel.PlayerViewModel
@@ -71,10 +76,14 @@ fun PlayerScreen(
         coverArtUrl = playerState.coverArtUrl,
         isPlaying = playerState.isPlaying,
         progress = playerState.progress,
+        shuffleModeEnabled = playerState.shuffleModeEnabled,
+        repeatMode = playerState.repeatMode,
         onPlayPauseClick = viewModel::playPause,
         onNextClick = viewModel::skipToNext,
         onPreviousClick = viewModel::skipToPrevious,
         onSeek = viewModel::seekToProgress,
+        onToggleShuffle = viewModel::toggleShuffle,
+        onCycleRepeat = viewModel::cycleRepeatMode,
         onBackClick = onBackClick,
         modifier = modifier,
     )
@@ -88,10 +97,14 @@ fun PlayerScreenContent(
     coverArtUrl: String?,
     isPlaying: Boolean,
     progress: Float,
+    shuffleModeEnabled: Boolean = false,
+    repeatMode: Int = Player.REPEAT_MODE_OFF,
     onPlayPauseClick: () -> Unit,
     onNextClick: () -> Unit,
     onPreviousClick: () -> Unit,
     onSeek: (Float) -> Unit,
+    onToggleShuffle: () -> Unit = {},
+    onCycleRepeat: () -> Unit = {},
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -183,10 +196,23 @@ fun PlayerScreenContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 48.dp, vertical = 8.dp),
+                .padding(horizontal = 24.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Shuffle toggle
+            IconButton(
+                onClick = onToggleShuffle,
+                modifier = Modifier.size(44.dp),
+            ) {
+                Icon(
+                    imageVector = if (shuffleModeEnabled) Icons.Filled.ShuffleOn else Icons.Filled.Shuffle,
+                    contentDescription = stringResource(R.string.player_shuffle),
+                    tint = if (shuffleModeEnabled) PrimaryAccent else TextPrimary,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+
             IconButton(
                 onClick = onPreviousClick,
                 modifier = Modifier.size(44.dp),
@@ -199,6 +225,7 @@ fun PlayerScreenContent(
                 )
             }
 
+            // Play/Pause — big, centered
             IconButton(
                 onClick = onPlayPauseClick,
                 modifier = Modifier
@@ -227,6 +254,22 @@ fun PlayerScreenContent(
                     contentDescription = stringResource(R.string.player_next),
                     tint = TextPrimary,
                     modifier = Modifier.size(32.dp),
+                )
+            }
+
+            // Repeat mode toggle
+            IconButton(
+                onClick = onCycleRepeat,
+                modifier = Modifier.size(44.dp),
+            ) {
+                Icon(
+                    imageVector = when (repeatMode) {
+                        Player.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
+                        else -> Icons.Filled.Repeat
+                    },
+                    contentDescription = stringResource(R.string.player_repeat),
+                    tint = if (repeatMode != Player.REPEAT_MODE_OFF) PrimaryAccent else TextPrimary,
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }

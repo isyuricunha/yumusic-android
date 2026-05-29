@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -113,18 +114,28 @@ fun MiniPlayer(
                 }
             }
 
-            // Play/Pause only — Tidal style, no skip button
-            IconButton(onClick = onPlayPauseClick) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) {
-                        stringResource(R.string.mini_player_pause)
-                    } else {
-                        stringResource(R.string.mini_player_play)
-                    },
-                    tint = TextPrimary,
-                    modifier = Modifier.size(24.dp),
-                )
+            // Play/Pause + Next — Tidal style
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onPlayPauseClick) {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) {
+                            stringResource(R.string.mini_player_pause)
+                        } else {
+                            stringResource(R.string.mini_player_play)
+                        },
+                        tint = TextPrimary,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                IconButton(onClick = onNextClick) {
+                    Icon(
+                        imageVector = Icons.Filled.SkipNext,
+                        contentDescription = stringResource(R.string.mini_player_next),
+                        tint = TextSecondary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
         }
     }
