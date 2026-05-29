@@ -38,8 +38,7 @@ class ArtistViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(albums = ScreenState.Loading)
             repository.getAlbumsByArtist(artistId)
-                .onSuccess { albums ->
-                    val name = albums.firstOrNull()?.artist ?: ""
+                .onSuccess { (name, albums) ->
                     _uiState.value = _uiState.value.copy(
                         artistName = name,
                         albums = ScreenState.Success(albums),

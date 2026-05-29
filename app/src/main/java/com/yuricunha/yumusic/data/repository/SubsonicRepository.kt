@@ -62,7 +62,7 @@ class SubsonicRepository @Inject constructor(
         }
     }
 
-    suspend fun getAlbumsByArtist(artistId: String): Result<List<AlbumDto>> {
+    suspend fun getAlbumsByArtist(artistId: String): Result<Pair<String, List<AlbumDto>>> {
         val config = getConfig()
         if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
         return try {
@@ -73,14 +73,17 @@ class SubsonicRepository @Inject constructor(
             )
             val error = response.response?.error
             if (error != null) return Result.failure(Exception(error.message))
-            val albums = response.response?.artist?.albums ?: emptyList()
+            val artistDetail = response.response?.artist
+            val albums = artistDetail?.albums ?: emptyList()
+            val artistName = artistDetail?.name ?: albums.firstOrNull()?.artist ?: ""
             // Cache to Room
             albumDao.insertAll(albums.map { it.toEntity() })
-            Result.success(albums)
+            Result.success(Pair(artistName, albums))
         } catch (e: Exception) {
             val cached = albumDao.getByArtistId(artistId).first()
             if (cached.isNotEmpty()) {
-                Result.success(cached.map { it.toDto() })
+                val name = cached.firstOrNull()?.artist ?: ""
+                Result.success(Pair(name, cached.map { it.toDto() }))
             } else {
                 Result.failure(e)
             }

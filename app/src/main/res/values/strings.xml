@@ -15,26 +15,19 @@
     <string name="screen_search">Search</string>
     <string name="screen_artist">Artist</string>
     <string name="screen_album">Album</string>
-    <string name="screen_player">Now Playing</string>
     <string name="screen_settings">Server Setup</string>
 
     <!-- Home -->
-    <string name="home_recent_album">Recent %1$d</string>
     <string name="home_section_random_albums">Random Albums</string>
 
     <!-- Library -->
-    <string name="library_artist_name">Artist %1$d</string>
     <string name="library_albums_count">%1$d albums</string>
 
     <!-- Search -->
     <string name="search_placeholder">Search artists, albums, songs…</string>
     <string name="search_hint">Type to search your library</string>
 
-    <!-- Artist -->
-    <string name="artist_album_title">Album %1$d</string>
-
     <!-- Album -->
-    <string name="album_track_title">Track %1$d</string>
     <string name="album_track_duration">%1$d:%2$02d</string>
     <string name="album_track_count">%1$d tracks</string>
 
@@ -47,8 +40,6 @@
     <string name="player_pause">Pause</string>
     <string name="player_shuffle">Shuffle</string>
     <string name="player_repeat">Repeat</string>
-    <string name="player_time_current">1:12</string>
-    <string name="player_time_total">3:42</string>
 
     <!-- Mini Player -->
     <string name="mini_player_no_track">No track playing</string>
@@ -74,7 +65,6 @@
     <!-- Empty states -->
     <string name="home_empty">No artists found. Configure your server to get started.</string>
     <string name="home_section_artists">All Artists</string>
-    <string name="library_section_artists">Artists</string>
     <string name="search_section_artists">Artists</string>
     <string name="search_section_albums">Albums</string>
     <string name="search_section_songs">Songs</string>
@@ -85,7 +75,5 @@
     <string name="error_server_url_required">Server URL is required</string>
     <string name="error_username_required">Username is required</string>
     <string name="error_password_required">Password is required</string>
-    <string name="error_save_failed">Failed to save settings</string>
     <string name="error_connection_failed">Could not connect to server. Check the URL and try again.</string>
-    <string name="settings_connected">Connected successfully!</string>
 </resources>
