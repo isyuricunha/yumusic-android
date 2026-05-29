@@ -248,7 +248,8 @@ class SubsonicRepository @Inject constructor(
 
     fun getStreamUrl(trackId: String): String {
         val config = getCachedConfig() ?: return "http://placeholder.example.com/rest/stream?id=$trackId"
-        return "${buildBaseUrl(config)}/rest/stream?id=$trackId"
+        val base = buildBaseUrl(config)
+        return "$base/rest/stream?id=$trackId&u=${config.username}&p=${config.password}&v=${SubsonicApiService.API_VERSION}&c=${SubsonicApiService.CLIENT_NAME}"
     }
 
     fun getCoverArtUrl(coverArtId: String): String {
