@@ -64,6 +64,10 @@
     <string name="settings_password">Senha</string>
     <string name="settings_save">Conectar</string>
 
+    <!-- Notifications -->
+    <string name="notification_channel_name">Reprodução</string>
+    <string name="notification_channel_description">Controles de reprodução de música</string>
+
     <!-- Actions -->
     <string name="action_retry">Tentar novamente</string>
 
