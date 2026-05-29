@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">YuMusic</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Início</string>
+    <string name="nav_library">Biblioteca</string>
+    <string name="nav_search">Buscar</string>
+    <string name="nav_back">Voltar</string>
+
+    <!-- Screens -->
+    <string name="screen_home">Início</string>
+    <string name="screen_library">Biblioteca</string>
+    <string name="screen_search">Buscar</string>
+    <string name="screen_artist">Artista</string>
+    <string name="screen_album">Álbum</string>
+    <string name="screen_player">Tocando Agora</string>
+    <string name="screen_settings">Configuração do Servidor</string>
+
+    <!-- Home -->
+    <string name="home_recent_album">Recente %1$d</string>
+
+    <!-- Library -->
+    <string name="library_artist_name">Artista %1$d</string>
+    <string name="library_albums_count">%1$d álbuns</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Buscar artistas, álbuns, músicas…</string>
+    <string name="search_hint">Digite para buscar na biblioteca</string>
+
+    <!-- Artist -->
+    <string name="artist_album_title">Álbum %1$d</string>
+
+    <!-- Album -->
+    <string name="album_track_title">Faixa %1$d</string>
+    <string name="album_track_duration">%1$d:%2$02d</string>
+    <string name="album_track_count">%1$d faixas</string>
+
+    <!-- Player -->
+    <string name="player_track_title">Título da Faixa</string>
+    <string name="player_artist_name">Nome do Artista</string>
+    <string name="player_previous">Anterior</string>
+    <string name="player_next">Próxima</string>
+    <string name="player_play">Tocar</string>
+    <string name="player_pause">Pausar</string>
+    <string name="player_time_current">1:12</string>
+    <string name="player_time_total">3:42</string>
+
+    <!-- Mini Player -->
+    <string name="mini_player_no_track">Nenhuma faixa tocando</string>
+    <string name="mini_player_play">Tocar</string>
+    <string name="mini_player_pause">Pausar</string>
+    <string name="mini_player_next">Próxima</string>
+
+    <!-- Settings -->
+    <string name="settings_subtitle">Configure seu servidor Subsonic</string>
+    <string name="settings_server_url">URL do Servidor</string>
+    <string name="settings_server_url_hint">https://musica.exemplo.com</string>
+    <string name="settings_username">Usuário</string>
+    <string name="settings_password">Senha</string>
+    <string name="settings_save">Conectar</string>
+
+    <!-- Actions -->
+    <string name="action_retry">Tentar novamente</string>
+
+    <!-- Empty states -->
+    <string name="home_empty">Nenhum artista encontrado. Configure seu servidor para começar.</string>
+    <string name="home_section_artists">Todos os Artistas</string>
+    <string name="library_section_artists">Artistas</string>
+    <string name="search_section_artists">Artistas</string>
+    <string name="search_section_albums">Álbuns</string>
+    <string name="search_section_songs">Músicas</string>
+    <string name="library_empty">Nenhum artista encontrado</string>
+    <string name="search_empty">Nenhum resultado encontrado</string>
+    <string name="screen_albums_count">%1$d álbuns</string>
+    <string name="error_not_configured">Servidor não configurado</string>
+    <string name="error_server_url_required">URL do servidor é obrigatória</string>
+    <string name="error_username_required">Usuário é obrigatório</string>
+    <string name="error_password_required">Senha é obrigatória</string>
+    <string name="error_save_failed">Falha ao salvar configurações</string>
+    <string name="error_connection_failed">Não foi possível conectar ao servidor. Verifique a URL e tente novamente.</string>
+    <string name="settings_connected">Conectado com sucesso!</string>
+</resources>
