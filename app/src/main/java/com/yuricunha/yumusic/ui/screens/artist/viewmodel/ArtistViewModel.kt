@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistInfo
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
 import com.yuricunha.yumusic.player.PlayerConnection
 import com.yuricunha.yumusic.util.ScreenState
@@ -20,6 +21,7 @@ data class ArtistUiState(
     val artistName: String = "",
     val albums: ScreenState<List<AlbumDto>> = ScreenState.Loading,
     val biography: String? = null,
+    val topSongs: List<TrackDto> = emptyList(),
 )
 
 @HiltViewModel
@@ -37,6 +39,7 @@ class ArtistViewModel @Inject constructor(
     init {
         loadAlbums()
         loadBiography()
+        loadTopSongs()
     }
 
     fun loadAlbums() {
@@ -63,7 +66,19 @@ class ArtistViewModel @Inject constructor(
                 .onSuccess { info ->
                     _uiState.value = _uiState.value.copy(biography = info.biography)
                 }
-                .onFailure { /* BIO unavailable, silently ignore */ }
+                .onFailure { /* BIO unavailable */ }
+        }
+    }
+
+    private fun loadTopSongs() {
+        viewModelScope.launch {
+            val name = _uiState.value.artistName
+            if (name.isEmpty()) return@launch
+            repository.getTopSongs(name, 5)
+                .onSuccess { songs ->
+                    _uiState.value = _uiState.value.copy(topSongs = songs)
+                }
+                .onFailure { /* Top songs unavailable */ }
         }
     }
 

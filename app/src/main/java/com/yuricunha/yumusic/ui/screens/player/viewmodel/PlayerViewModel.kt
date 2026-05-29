@@ -10,6 +10,8 @@ import com.yuricunha.yumusic.data.repository.SubsonicRepository
 import com.yuricunha.yumusic.player.PlayerConnection
 import com.yuricunha.yumusic.player.PlayerUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +32,33 @@ class PlayerViewModel @Inject constructor(
 
     private val _showLyrics = MutableStateFlow(false)
     val showLyrics: StateFlow<Boolean> = _showLyrics.asStateFlow()
+
+    private val _showQueue = MutableStateFlow(false)
+    val showQueue: StateFlow<Boolean> = _showQueue.asStateFlow()
+
+    // ── Sleep Timer ──────────────────────────────────────────────────────
+    private val _sleepTimerRemaining = MutableStateFlow<Int?>(null)
+    val sleepTimerRemaining: StateFlow<Int?> = _sleepTimerRemaining.asStateFlow()
+
+    private var sleepTimerJob: Job? = null
+
+    fun setSleepTimer(minutes: Int) {
+        sleepTimerJob?.cancel()
+        _sleepTimerRemaining.value = minutes * 60
+        sleepTimerJob = viewModelScope.launch {
+            while ((_sleepTimerRemaining.value ?: 0) > 0) {
+                delay(1000)
+                _sleepTimerRemaining.value = (_sleepTimerRemaining.value ?: 0) - 1
+            }
+            playerConnection.playPause()
+            _sleepTimerRemaining.value = null
+        }
+    }
+
+    fun cancelSleepTimer() {
+        sleepTimerJob?.cancel()
+        _sleepTimerRemaining.value = null
+    }
 
     private var lastTrackTitle: String? = null
 
@@ -61,6 +90,12 @@ class PlayerViewModel @Inject constructor(
     fun toggleLyrics() {
         _showLyrics.value = !_showLyrics.value
     }
+
+    fun toggleQueue() {
+        _showQueue.value = !_showQueue.value
+    }
+
+    fun getQueueItems(): List<MediaItem> = playerConnection.getQueue()
 
     fun connect() {
         playerConnection.connect()

@@ -142,6 +142,13 @@ class PlayerConnection @Inject constructor(
         }
     }
 
+    fun getQueue(): List<MediaItem> {
+        val player = mediaController ?: return emptyList()
+        return (0 until player.mediaItemCount).mapNotNull { index ->
+            player.getMediaItemAt(index)
+        }
+    }
+
     fun play(mediaItems: List<MediaItem>, startIndex: Int = 0) {
         val player = mediaController ?: return
         try {
