@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.yuricunha.yumusic.ui.screens.album.AlbumScreen
 import com.yuricunha.yumusic.ui.screens.artist.ArtistScreen
+import com.yuricunha.yumusic.ui.screens.genre.GenreSongsScreen
 import com.yuricunha.yumusic.ui.screens.home.HomeScreen
 import com.yuricunha.yumusic.ui.screens.library.LibraryScreen
 import com.yuricunha.yumusic.ui.screens.player.PlayerScreen
@@ -50,6 +51,9 @@ fun NavGraph(
                     },
                     onPlaylistClick = { playlistId, playlistName ->
                         navController.navigate(Route.playlist(playlistId, playlistName))
+                    },
+                    onGenreClick = { genreName ->
+                        navController.navigate(Route.genre(genreName))
                     },
                 )
             }
@@ -120,6 +124,20 @@ fun NavGraph(
                 ),
             ) { backStackEntry ->
                 PlaylistScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToPlayer = {
+                        navController.navigate(Route.PLAYER)
+                    },
+                )
+            }
+
+            composable(
+                route = Route.GENRE,
+                arguments = listOf(
+                    navArgument("genreName") { type = NavType.StringType },
+                ),
+            ) {
+                GenreSongsScreen(
                     onBackClick = { navController.popBackStack() },
                     onNavigateToPlayer = {
                         navController.navigate(Route.PLAYER)

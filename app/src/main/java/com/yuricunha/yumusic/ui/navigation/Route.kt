@@ -14,11 +14,13 @@ object Route {
     const val ARTIST = "artist/{artistId}"
     const val ALBUM = "album/{albumId}"
     const val PLAYLIST = "playlist/{playlistId}/{playlistName}"
+    const val GENRE = "genre/{genreName}"
     const val PLAYER = "player"
 
     fun artist(artistId: String) = "artist/$artistId"
     fun album(albumId: String) = "album/$albumId"
     fun playlist(playlistId: String, playlistName: String) = "playlist/$playlistId/$playlistName"
+    fun genre(genreName: String) = "genre/$genreName"
 }
 
 data class BottomNavItem(

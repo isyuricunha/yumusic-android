@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.GenreDto
 import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.repository.SettingsRepository
@@ -22,6 +23,7 @@ data class LibraryUiState(
     val artists: ScreenState<List<ArtistDto>> = ScreenState.Loading,
     val playlists: ScreenState<List<PlaylistDto>> = ScreenState.Loading,
     val starred: ScreenState<List<TrackDto>> = ScreenState.Loading,
+    val genres: ScreenState<List<GenreDto>> = ScreenState.Loading,
 )
 
 @HiltViewModel
@@ -52,9 +54,10 @@ class LibraryViewModel @Inject constructor(
                 artists = ScreenState.Loading,
                 playlists = ScreenState.Loading,
                 starred = ScreenState.Loading,
+                genres = ScreenState.Loading,
             )
 
-            // Fetch artists, playlists, and starred concurrently
+            // Fetch artists, playlists, starred, and genres concurrently
             launch {
                 repository.getArtists()
                     .onSuccess { artists ->
@@ -86,6 +89,18 @@ class LibraryViewModel @Inject constructor(
                     }
                     .onFailure {
                         _uiState.value = _uiState.value.copy(starred = ScreenState.Success(emptyList()))
+                    }
+            }
+
+            launch {
+                repository.getGenres()
+                    .onSuccess { genres ->
+                        _uiState.value = _uiState.value.copy(
+                            genres = ScreenState.Success(genres)
+                        )
+                    }
+                    .onFailure {
+                        _uiState.value = _uiState.value.copy(genres = ScreenState.Success(emptyList()))
                     }
             }
         }

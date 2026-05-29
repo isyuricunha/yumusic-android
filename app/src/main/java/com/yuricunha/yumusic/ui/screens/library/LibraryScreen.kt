@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.GenreDto
 import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
@@ -59,6 +60,7 @@ import com.yuricunha.yumusic.util.ScreenState
 fun LibraryScreen(
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String, String) -> Unit = { _, _ -> },
+    onGenreClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -68,6 +70,7 @@ fun LibraryScreen(
         uiState = uiState,
         onArtistClick = onArtistClick,
         onPlaylistClick = onPlaylistClick,
+        onGenreClick = onGenreClick,
         onRetry = viewModel::loadContent,
         getCoverArtUrl = viewModel::getCoverArtUrl,
         modifier = modifier,
@@ -80,6 +83,7 @@ fun LibraryScreenContent(
     uiState: LibraryUiState,
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String, String) -> Unit,
+    onGenreClick: (String) -> Unit = {},
     onRetry: () -> Unit,
     getCoverArtUrl: (String?) -> String?,
     modifier: Modifier = Modifier,
@@ -136,10 +140,13 @@ fun LibraryScreenContent(
                 val artists = (uiState.artists as? ScreenState.Success)?.data as? List<ArtistDto>
                 @Suppress("UNCHECKED_CAST")
                 val favorites = (uiState.starred as? ScreenState.Success)?.data as? List<TrackDto>
+                @Suppress("UNCHECKED_CAST")
+                val genres = (uiState.genres as? ScreenState.Success)?.data as? List<GenreDto>
 
                 val hasPlaylists = !playlists.isNullOrEmpty()
                 val hasArtists = !artists.isNullOrEmpty()
                 val hasFavorites = !favorites.isNullOrEmpty()
+                val hasGenres = !genres.isNullOrEmpty()
 
                 if (!hasPlaylists && !hasArtists && !hasFavorites) {
                     Box(
@@ -157,49 +164,53 @@ fun LibraryScreenContent(
                         // Playlists section
                         if (hasPlaylists) {
                             item {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = stringResource(R.string.library_section_playlists),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = TextPrimary,
-                                    modifier = Modifier.padding(start = 16.dp, bottom = 12.dp),
-                                )
-                                LazyRow(
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                ) {
-                                    items(playlists) { playlist ->
-                                        Column(
-                                            modifier = Modifier
-                                                .width(150.dp)
-                                                .clickable { onPlaylistClick(playlist.id, playlist.name) },
-                                        ) {
-                                            Box(
+                                Column {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.library_section_playlists),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = TextPrimary,
+                                        modifier = Modifier.padding(start = 20.dp, bottom = 12.dp),
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(rememberScrollState())
+                                            .padding(horizontal = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        playlists.forEach { playlist ->
+                                            Column(
                                                 modifier = Modifier
                                                     .width(150.dp)
-                                                    .height(150.dp)
-                                                    .clip(RoundedCornerShape(4.dp))
-                                                    .background(SurfaceCard),
-                                                contentAlignment = Alignment.Center,
+                                                    .clickable { onPlaylistClick(playlist.id, playlist.name) },
                                             ) {
-                                                AlbumArt(
-                                                    coverArtUrl = getCoverArtUrl(playlist.coverArt),
-                                                    contentDescription = playlist.name,
+                                                Box(
                                                     modifier = Modifier
                                                         .width(150.dp)
-                                                        .height(150.dp),
-                                                    cornerRadius = 4.dp,
+                                                        .height(150.dp)
+                                                        .clip(RoundedCornerShape(4.dp))
+                                                        .background(SurfaceCard),
+                                                    contentAlignment = Alignment.Center,
+                                                ) {
+                                                    AlbumArt(
+                                                        coverArtUrl = getCoverArtUrl(playlist.coverArt),
+                                                        contentDescription = playlist.name,
+                                                        modifier = Modifier
+                                                            .width(150.dp)
+                                                            .height(150.dp),
+                                                        cornerRadius = 4.dp,
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Text(
+                                                    text = playlist.name,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = TextPrimary,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
                                                 )
-                                            }
-                                            Spacer(modifier = Modifier.height(6.dp))
-                                            Text(
-                                                text = playlist.name,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = TextPrimary,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                            if (playlist.songCount != null && playlist.songCount > 0) {
+                                                if (playlist.songCount != null && playlist.songCount > 0) {
                                                 Text(
                                                     text = stringResource(R.string.album_track_count, playlist.songCount),
                                                     style = MaterialTheme.typography.labelMedium,
@@ -235,11 +246,14 @@ fun LibraryScreenContent(
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
-                                LazyRow(
-                                    contentPadding = PaddingValues(horizontal = 20.dp),
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState())
+                                        .padding(horizontal = 20.dp),
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 ) {
-                                    items(favorites.take(10)) { track ->
+                                    favorites.take(10).forEach { track ->
                                         Column(modifier = Modifier.width(160.dp)) {
                                             AlbumArt(
                                                 coverArtUrl = getCoverArtUrl(track.coverArt),
@@ -272,10 +286,48 @@ fun LibraryScreenContent(
                             }
                         }
 
+                        // Genres section
+                        if (hasGenres) {
+                            item {
+                                Column {
+                                    Spacer(modifier = Modifier.height(24.dp))
+                                    Text(
+                                        text = "Genres",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = TextPrimary,
+                                        modifier = Modifier.padding(start = 20.dp, bottom = 12.dp),
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .horizontalScroll(rememberScrollState())
+                                            .padding(horizontal = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    ) {
+                                        genres.take(20).forEach { genre ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(20.dp))
+                                                    .background(PrimaryAccent.copy(alpha = 0.15f))
+                                                    .clickable { onGenreClick(genre.name) }
+                                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                            ) {
+                                                Text(
+                                                    text = genre.name,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = PrimaryAccent,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // Artists section
                         if (hasArtists) {
                             item {
-                                Spacer(modifier = Modifier.height(if (hasPlaylists || hasFavorites) 24.dp else 8.dp))
+                                Spacer(modifier = Modifier.height(if (hasPlaylists || hasFavorites || hasGenres) 24.dp else 8.dp))
                                 Text(
                                     text = stringResource(R.string.library_section_artists),
                                     style = MaterialTheme.typography.titleMedium,
@@ -330,4 +382,5 @@ fun LibraryScreenContent(
             }
         }
     }
+}
 }

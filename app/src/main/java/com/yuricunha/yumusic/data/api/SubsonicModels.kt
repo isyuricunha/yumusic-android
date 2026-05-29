@@ -203,3 +203,39 @@ data class StarredItems(
     @SerializedName("album") val albums: List<AlbumDto>? = null,
     @SerializedName("song") val songs: List<TrackDto>? = null,
 )
+
+// ── getGenres ───────────────────────────────────────────────────────────
+// JSON: { "subsonic-response": { "status": "ok", "genres": { "genre": [...] } } }
+data class GenresResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("genres") val genres: GenreList?,
+)
+
+data class GenreList(
+    @SerializedName("genre") val genres: List<GenreDto>?,
+)
+
+data class GenreDto(
+    @SerializedName("value") val name: String,
+    @SerializedName("songCount") val songCount: Int?,
+    @SerializedName("albumCount") val albumCount: Int?,
+)
+
+// ── getSongsByGenre ─────────────────────────────────────────────────────
+data class SongsByGenreResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("songsByGenre") val songsByGenre: SongList?,
+)
+
+data class SongList(
+    @SerializedName("song") val songs: List<TrackDto>?,
+)
+
+// ── getTopSongs ─────────────────────────────────────────────────────────
+data class TopSongsResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("topSongs") val topSongs: SongList?,
+)

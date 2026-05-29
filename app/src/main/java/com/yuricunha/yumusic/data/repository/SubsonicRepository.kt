@@ -3,6 +3,7 @@ package com.yuricunha.yumusic.data.repository
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.data.api.ArtistInfo
+import com.yuricunha.yumusic.data.api.GenreDto
 import com.yuricunha.yumusic.data.api.LyricsData
 import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.StarredItems
@@ -311,6 +312,138 @@ class SubsonicRepository @Inject constructor(
             val error = response.response?.error
             if (error != null) return Result.failure(Exception(error.message))
             Result.success(response.response?.starred ?: StarredItems())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Genres ───────────────────────────────────────────────────────────
+
+    suspend fun getGenres(): Result<List<GenreDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getGenres(
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.genres?.genres ?: emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getSongsByGenre(genre: String, count: Int = 50): Result<List<TrackDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getSongsByGenre(
+                genre = genre,
+                count = count,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.songsByGenre?.songs ?: emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Top Songs ────────────────────────────────────────────────────────
+
+    suspend fun getTopSongs(artist: String, count: Int = 10): Result<List<TrackDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getTopSongs(
+                artist = artist,
+                count = count,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.topSongs?.songs ?: emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Playlist management ──────────────────────────────────────────────
+
+    suspend fun createPlaylist(name: String, songIds: List<String> = emptyList()): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.createPlaylist(
+                name = name,
+                songId = songIds.ifEmpty { null },
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun addToPlaylist(playlistId: String, songIds: List<String>): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.updatePlaylist(
+                playlistId = playlistId,
+                songIdToAdd = songIds,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun removeFromPlaylist(playlistId: String, songIndex: Int): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.updatePlaylist(
+                playlistId = playlistId,
+                songIndexToRemove = listOf(songIndex),
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Scrobble ─────────────────────────────────────────────────────────
+
+    suspend fun scrobble(trackId: String, submission: Boolean = true): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.scrobble(
+                trackId = trackId,
+                submission = submission,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

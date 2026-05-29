@@ -132,4 +132,89 @@ interface SubsonicApiService {
         @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<StarredResponse>
+
+    // ── Genres ───────────────────────────────────────────────────────────
+
+    @GET("rest/getGenres")
+    suspend fun getGenres(
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<GenresResponse>
+
+    @GET("rest/getSongsByGenre")
+    suspend fun getSongsByGenre(
+        @Query("genre") genre: String,
+        @Query("count") count: Int = 50,
+        @Query("offset") offset: Int = 0,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SongsByGenreResponse>
+
+    // ── Top Songs ────────────────────────────────────────────────────────
+
+    @GET("rest/getTopSongs")
+    suspend fun getTopSongs(
+        @Query("artist") artist: String,
+        @Query("count") count: Int = 10,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<TopSongsResponse>
+
+    // ── Playlist management ──────────────────────────────────────────────
+
+    @GET("rest/createPlaylist")
+    suspend fun createPlaylist(
+        @Query("name") name: String,
+        @Query("songId") songId: List<String>? = null,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<PlaylistResponse>
+
+    @GET("rest/updatePlaylist")
+    suspend fun updatePlaylist(
+        @Query("playlistId") playlistId: String,
+        @Query("songIdToAdd") songIdToAdd: List<String>? = null,
+        @Query("songIndexToRemove") songIndexToRemove: List<Int>? = null,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SubsonicStatus>
+
+    @GET("rest/deletePlaylist")
+    suspend fun deletePlaylist(
+        @Query("id") playlistId: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SubsonicStatus>
+
+    // ── Scrobble ─────────────────────────────────────────────────────────
+
+    @GET("rest/scrobble")
+    suspend fun scrobble(
+        @Query("id") trackId: String,
+        @Query("submission") submission: Boolean = true,
+        @Query("time") time: Long? = null,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SubsonicStatus>
 }
