@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -61,6 +63,7 @@ import com.yuricunha.yumusic.util.ScreenState
 @Composable
 fun ArtistScreen(
     onAlbumClick: (String) -> Unit,
+    onArtistClick: (String) -> Unit = {},
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ArtistViewModel = hiltViewModel(),
@@ -193,6 +196,7 @@ fun ArtistScreen(
                     // Biography section
                     val bio = uiState.biography
                     val topSongs = uiState.topSongs
+                    val similarArtists = uiState.similarArtists
                     if (!bio.isNullOrBlank()) {
                         item {
                             Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -266,6 +270,41 @@ fun ArtistScreen(
                                         style = MaterialTheme.typography.labelSmall,
                                         color = TextTertiary,
                                     )
+                                }
+                            }
+                        }
+                    }
+
+                    // Similar Artists section
+                    if (similarArtists.isNotEmpty()) {
+                        item {
+                            Box {
+                                Column {
+                                    Spacer(Modifier.height(20.dp))
+                                    Text("Similar Artists", style = MaterialTheme.typography.titleMedium, color = TextPrimary, modifier = Modifier.padding(horizontal = 20.dp))
+                                    Spacer(Modifier.height(12.dp))
+                                    val onSimArtistClick = { id: String -> }
+                                    LazyRow(
+                                        contentPadding = PaddingValues(horizontal = 20.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    ) {
+                                        items(similarArtists.take(10)) { artist ->
+                                            val captureId = artist.id
+                                            Column(
+                                                modifier = Modifier.width(120.dp).clickable { onSimArtistClick(captureId) },
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                            ) {
+                                                AlbumArt(
+                                                    coverArtUrl = viewModel.getCoverArtUrl(artist.coverArt),
+                                                    contentDescription = artist.name,
+                                                    modifier = Modifier.size(120.dp),
+                                                    cornerRadius = 60.dp,
+                                                )
+                                                Spacer(Modifier.height(6.dp))
+                                                Text(artist.name, style = MaterialTheme.typography.bodySmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

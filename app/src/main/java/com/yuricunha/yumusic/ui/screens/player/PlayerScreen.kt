@@ -28,7 +28,11 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material.icons.filled.TextSnippet  // lyrics icon
+import androidx.compose.material.icons.filled.TextSnippet
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,9 +43,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +63,7 @@ import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
 import com.yuricunha.yumusic.ui.screens.player.viewmodel.PlayerViewModel
 import com.yuricunha.yumusic.ui.theme.Background
+import com.yuricunha.yumusic.ui.theme.BackgroundElevated
 import com.yuricunha.yumusic.ui.theme.HoverRipple
 import com.yuricunha.yumusic.ui.theme.PrimaryAccent
 import com.yuricunha.yumusic.ui.theme.TextPrimary
@@ -74,10 +81,9 @@ fun PlayerScreen(
     val lyrics by viewModel.lyrics.collectAsState()
     val showLyrics by viewModel.showLyrics.collectAsState()
     val similarSongs by viewModel.similarSongs.collectAsState()
+    val sleepTimer by viewModel.sleepTimerRemaining.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.connect()
-    }
+    var showSleepDialog by remember { mutableStateOf(false) }
 
     PlayerScreenContent(
         title = playerState.title.ifEmpty { stringResource(R.string.player_track_title) },
@@ -99,6 +105,11 @@ fun PlayerScreen(
         onCycleRepeat = viewModel::cycleRepeatMode,
         onBackClick = onBackClick,
         getCoverArtUrl = viewModel::getCoverArtUrl,
+        sleepTimerRemaining = sleepTimer,
+        onSetSleepTimer = viewModel::setSleepTimer,
+        onCancelSleepTimer = viewModel::cancelSleepTimer,
+        showSleepDialog = showSleepDialog,
+        onToggleSleepDialog = { showSleepDialog = !showSleepDialog },
         modifier = modifier,
     )
 }
@@ -125,6 +136,11 @@ fun PlayerScreenContent(
     onCycleRepeat: () -> Unit = {},
     onBackClick: () -> Unit,
     getCoverArtUrl: (String?) -> String? = { null },
+    sleepTimerRemaining: Int? = null,
+    onSetSleepTimer: (Int) -> Unit = {},
+    onCancelSleepTimer: () -> Unit = {},
+    showSleepDialog: Boolean = false,
+    onToggleSleepDialog: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -150,15 +166,17 @@ fun PlayerScreenContent(
             actions = {
                 if (!lyrics.isNullOrEmpty()) {
                     IconButton(onClick = onToggleLyrics) {
-                        Icon(
-                            imageVector = Icons.Filled.TextSnippet,
-                            contentDescription = "Lyrics",
-                            tint = if (showLyrics) PrimaryAccent else TextSecondary,
-                        )
+                        Icon(Icons.Filled.TextSnippet, "Lyrics", tint = if (showLyrics) PrimaryAccent else TextSecondary)
                     }
                 }
-                // Sleep timer submenu placeholder
-                // Queue button placeholder
+                // Sleep timer button
+                IconButton(onClick = onToggleSleepDialog) {
+                    Icon(
+                        Icons.Filled.Timer,
+                        "Sleep timer",
+                        tint = if (sleepTimerRemaining != null) PrimaryAccent else TextSecondary,
+                    )
+                }
             },
         )
 
@@ -355,5 +373,34 @@ fun PlayerScreenContent(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+    }
+
+    // Sleep timer dialog
+    if (showSleepDialog) {
+        AlertDialog(
+            onDismissRequest = onToggleSleepDialog,
+            title = { Text(sleepTimerRemaining?.let { "Sleeping in ${it / 60}m" } ?: "Sleep Timer") },
+            text = {
+                Column {
+                    if (sleepTimerRemaining != null) {
+                        Button(onClick = onCancelSleepTimer, colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent)) {
+                            Text("Cancel Timer", color = Background)
+                        }
+                    } else {
+                        listOf(15, 30, 45, 60).forEach { mins ->
+                            Button(
+                                onClick = { onSetSleepTimer(mins); onToggleSleepDialog() },
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = TextPrimary.copy(alpha = 0.1f)),
+                            ) {
+                                Text("$mins minutes", color = TextPrimary)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            containerColor = BackgroundElevated,
+        )
     }
 }

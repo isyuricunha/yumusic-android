@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.data.api.AlbumDto
+import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.data.api.ArtistInfo
 import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
@@ -22,6 +23,7 @@ data class ArtistUiState(
     val albums: ScreenState<List<AlbumDto>> = ScreenState.Loading,
     val biography: String? = null,
     val topSongs: List<TrackDto> = emptyList(),
+    val similarArtists: List<ArtistDto> = emptyList(),
 )
 
 @HiltViewModel
@@ -64,7 +66,10 @@ class ArtistViewModel @Inject constructor(
         viewModelScope.launch {
             repository.getArtistInfo(artistId)
                 .onSuccess { info ->
-                    _uiState.value = _uiState.value.copy(biography = info.biography)
+                    _uiState.value = _uiState.value.copy(
+                        biography = info.biography,
+                        similarArtists = info.similarArtists ?: emptyList(),
+                    )
                 }
                 .onFailure { /* BIO unavailable */ }
         }
