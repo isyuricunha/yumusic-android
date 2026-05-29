@@ -20,6 +20,7 @@
 
     <!-- Home -->
     <string name="home_recent_album">Recent %1$d</string>
+    <string name="home_section_random_albums">Random Albums</string>
 
     <!-- Library -->
     <string name="library_artist_name">Artist %1$d</string>

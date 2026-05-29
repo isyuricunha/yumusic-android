@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.R
+import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.data.repository.SettingsRepository
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
@@ -16,6 +17,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class HomeUiState(
+    val artists: ScreenState<List<ArtistDto>> = ScreenState.Loading,
+    val randomAlbums: ScreenState<List<AlbumDto>> = ScreenState.Loading,
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val application: Application,
@@ -23,28 +29,54 @@ class HomeViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-    private val _artistsState = MutableStateFlow<ScreenState<List<ArtistDto>>>(ScreenState.Loading)
-    val artistsState: StateFlow<ScreenState<List<ArtistDto>>> = _artistsState.asStateFlow()
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadArtists()
+        loadContent()
     }
 
-    fun loadArtists() {
+    fun loadContent() {
         viewModelScope.launch {
             val config = settingsRepository.serverConfig.first()
             if (!config.isConfigured) {
-                _artistsState.value = ScreenState.Error(application.getString(R.string.error_not_configured))
+                _uiState.value = HomeUiState(
+                    artists = ScreenState.Error(application.getString(R.string.error_not_configured)),
+                    randomAlbums = ScreenState.Error(application.getString(R.string.error_not_configured)),
+                )
                 return@launch
             }
-            _artistsState.value = ScreenState.Loading
-            repository.getArtists()
-                .onSuccess { artists ->
-                    _artistsState.value = ScreenState.Success(artists)
-                }
-                .onFailure { e ->
-                    _artistsState.value = ScreenState.Error(e.message ?: application.getString(R.string.error_not_configured))
-                }
+            _uiState.value = HomeUiState(
+                artists = ScreenState.Loading,
+                randomAlbums = ScreenState.Loading,
+            )
+
+            // Fetch artists and random albums concurrently
+            val artistsDeferred = viewModelScope.launch {
+                repository.getArtists()
+                    .onSuccess { artists ->
+                        _uiState.value = _uiState.value.copy(artists = ScreenState.Success(artists))
+                    }
+                    .onFailure { e ->
+                        _uiState.value = _uiState.value.copy(
+                            artists = ScreenState.Error(e.message ?: application.getString(R.string.error_not_configured))
+                        )
+                    }
+            }
+
+            val albumsDeferred = viewModelScope.launch {
+                repository.getRandomAlbums(size = 10)
+                    .onSuccess { albums ->
+                        _uiState.value = _uiState.value.copy(randomAlbums = ScreenState.Success(albums))
+                    }
+                    .onFailure {
+                        _uiState.value = _uiState.value.copy(randomAlbums = ScreenState.Success(emptyList()))
+                    }
+            }
+
+            // Wait for both to complete
+            artistsDeferred.join()
+            albumsDeferred.join()
         }
     }
 

@@ -31,7 +31,7 @@ fun BottomNavBar(
                 icon = {
                     Icon(
                         imageVector = item.icon,
-                        contentDescription = null,
+                        contentDescription = stringResource(item.labelResId),
                     )
                 },
                 label = {

@@ -33,6 +33,9 @@ fun NavGraph(
                     onArtistClick = { artistId ->
                         navController.navigate(Route.artist(artistId))
                     },
+                    onAlbumClick = { albumId ->
+                        navController.navigate(Route.album(albumId))
+                    },
                     onSettingsClick = {
                         navController.navigate(Route.SETTINGS)
                     },

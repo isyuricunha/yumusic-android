@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.yuricunha.yumusic.R
+import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
 import com.yuricunha.yumusic.ui.screens.home.viewmodel.HomeViewModel
@@ -51,17 +53,20 @@ import com.yuricunha.yumusic.util.ScreenState
 @Composable
 fun HomeScreen(
     onArtistClick: (String) -> Unit = {},
+    onAlbumClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
-    val artistsState by viewModel.artistsState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     HomeScreenContent(
-        artistsState = artistsState,
+        artistsState = uiState.artists,
+        randomAlbumsState = uiState.randomAlbums,
         onArtistClick = onArtistClick,
+        onAlbumClick = onAlbumClick,
         onSettingsClick = onSettingsClick,
-        onRetry = viewModel::loadArtists,
+        onRetry = viewModel::loadContent,
         getCoverArtUrl = viewModel::getCoverArtUrl,
         modifier = modifier,
     )
@@ -71,7 +76,9 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     artistsState: ScreenState<*>,
+    randomAlbumsState: ScreenState<*>,
     onArtistClick: (String) -> Unit,
+    onAlbumClick: (String) -> Unit = {},
     onSettingsClick: () -> Unit,
     onRetry: () -> Unit,
     getCoverArtUrl: (String?) -> String?,
@@ -101,8 +108,11 @@ fun HomeScreenContent(
             ),
         )
 
-        when (artistsState) {
-            is ScreenState.Loading -> {
+        val isLoading = artistsState is ScreenState.Loading || randomAlbumsState is ScreenState.Loading
+        val isError = artistsState is ScreenState.Error && randomAlbumsState is ScreenState.Error
+
+        when {
+            isLoading && !isError -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center,
@@ -110,14 +120,15 @@ fun HomeScreenContent(
                     CircularProgressIndicator(color = PrimaryAccent)
                 }
             }
-            is ScreenState.Error -> {
+            isError -> {
+                val errorState = (artistsState as? ScreenState.Error) ?: (randomAlbumsState as? ScreenState.Error)
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = artistsState.message,
+                        text = errorState?.message ?: stringResource(R.string.error_not_configured),
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextTertiary,
                     )
@@ -130,10 +141,15 @@ fun HomeScreenContent(
                     )
                 }
             }
-            is ScreenState.Success -> {
+            else -> {
                 @Suppress("UNCHECKED_CAST")
-                val artists = artistsState.data as? List<ArtistDto>
-                if (artists.isNullOrEmpty()) {
+                val artists = (artistsState as? ScreenState.Success)?.data as? List<ArtistDto>
+                @Suppress("UNCHECKED_CAST")
+                val randomAlbums = (randomAlbumsState as? ScreenState.Success)?.data as? List<AlbumDto>
+
+                val hasContent = (!artists.isNullOrEmpty()) || (!randomAlbums.isNullOrEmpty())
+
+                if (!hasContent) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -152,9 +168,61 @@ fun HomeScreenContent(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 16.dp),
                     ) {
+                        // Random Albums section
+                        if (!randomAlbums.isNullOrEmpty()) {
+                            item {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = stringResource(R.string.home_section_random_albums),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = TextPrimary,
+                                    modifier = Modifier.padding(start = 16.dp, bottom = 12.dp),
+                                )
+                                LazyRow(
+                                    contentPadding = PaddingValues(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    items(randomAlbums) { album ->
+                                        Column(
+                                            modifier = Modifier
+                                                .width(150.dp)
+                                                .clickable { onAlbumClick(album.id) },
+                                        ) {
+                                            AlbumArt(
+                                                coverArtUrl = getCoverArtUrl(album.coverArt),
+                                                contentDescription = album.name,
+                                                modifier = Modifier
+                                                    .width(150.dp)
+                                                    .height(150.dp),
+                                                cornerRadius = 4.dp,
+                                            )
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text(
+                                                text = album.name,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = TextPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            if (!album.artist.isNullOrEmpty()) {
+                                                Text(
+                                                    text = album.artist,
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    color = TextTertiary,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // Featured artist — first one, large artwork
-                        item {
-                            Column(modifier = Modifier.fillMaxWidth()) {
+                        if (!artists.isNullOrEmpty()) {
+                            item {
+                                Spacer(modifier = Modifier.height(if (randomAlbums.isNullOrEmpty()) 8.dp else 24.dp))
                                 Text(
                                     text = stringResource(R.string.home_section_artists),
                                     style = MaterialTheme.typography.titleMedium,
@@ -200,7 +268,7 @@ fun HomeScreenContent(
                         }
 
                         // Artist grid — 2 columns
-                        if (artists.size > 1) {
+                        if (!artists.isNullOrEmpty() && artists.size > 1) {
                             item {
                                 Spacer(modifier = Modifier.height(28.dp))
                             }
