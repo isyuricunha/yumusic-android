@@ -62,14 +62,32 @@ import com.yuricunha.yumusic.ui.theme.TextSecondary
 import com.yuricunha.yumusic.ui.theme.TextTertiary
 import com.yuricunha.yumusic.util.ScreenState
 
+@Composable
+fun GenresRow(genres: List<GenreDto>, onGenreClick: (String) -> Unit) {
+    Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Spacer(Modifier.height(24.dp))
+        Text("Genres", style = MaterialTheme.typography.titleMedium, color = TextPrimary, modifier = Modifier.padding(bottom = 12.dp))
+        genres.take(20).forEach { genre ->
+            Box(
+                modifier = Modifier
+                    .padding(vertical = 4.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(PrimaryAccent.copy(alpha = 0.15f))
+                    .clickable { onGenreClick(genre.name) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                Text(genre.name, style = MaterialTheme.typography.bodyMedium, color = PrimaryAccent)
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryScreen(
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (String) -> Unit = {},
-    onFolderClick: (String, String) -> Unit = { _, _ -> },
-    onRadioClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -80,8 +98,6 @@ fun LibraryScreen(
         onArtistClick = onArtistClick,
         onPlaylistClick = onPlaylistClick,
         onGenreClick = onGenreClick,
-        onFolderClick = onFolderClick,
-        onRadioClick = onRadioClick,
         onRetry = viewModel::loadContent,
         getCoverArtUrl = viewModel::getCoverArtUrl,
         modifier = modifier,
@@ -95,8 +111,6 @@ fun LibraryScreenContent(
     onArtistClick: (String) -> Unit,
     onPlaylistClick: (String, String) -> Unit,
     onGenreClick: (String) -> Unit = {},
-    onFolderClick: (String, String) -> Unit = { _, _ -> },
-    onRadioClick: () -> Unit = {},
     onRetry: () -> Unit,
     getCoverArtUrl: (String?) -> String?,
     modifier: Modifier = Modifier,
@@ -305,98 +319,26 @@ fun LibraryScreenContent(
 
                         // Genres section
                         if (hasGenres) {
-                            item {
-                                Column {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    Text(
-                                        text = "Genres",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = TextPrimary,
-                                        modifier = Modifier.padding(start = 20.dp, bottom = 12.dp),
-                                    )
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .horizontalScroll(rememberScrollState())
-                                            .padding(horizontal = 20.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        genres.take(20).forEach { genre ->
-                                            Box(
-                                                modifier = Modifier
-                                                    .clip(RoundedCornerShape(20.dp))
-                                                    .background(PrimaryAccent.copy(alpha = 0.15f))
-                                                    .clickable { onGenreClick(genre.name) }
-                                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                            ) {
-                                                Text(
-                                                    text = genre.name,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = PrimaryAccent,
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Browse section
-                        item(key = "browse") {
-                            Box {
-                                Column {
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    Text("Browse", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
-                                    Spacer(Modifier.height(8.dp))
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SurfaceCard).clickable { onFolderClick("0", "Music") }.padding(horizontal = 20.dp, vertical = 16.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Icon(Icons.Filled.Folder, null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
-                                                Spacer(Modifier.height(6.dp))
-                                                Text("Files", style = MaterialTheme.typography.bodySmall, color = TextPrimary)
-                                            }
-                                        }
-                                        Box(
-                                            modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SurfaceCard).clickable { onRadioClick() }.padding(horizontal = 20.dp, vertical = 16.dp),
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Icon(Icons.Filled.Radio, null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
-                                                Spacer(Modifier.height(6.dp))
-                                                Text("Radio", style = MaterialTheme.typography.bodySmall, color = TextPrimary)
-                                            }
-                                        }
-                                    }
-                                }
+                            item(key = "genres") {
+                                GenresRow(genres = genres, onGenreClick = onGenreClick)
                             }
                         }
 
                         // Bookmarks section
                         if (!bookmarks.isNullOrEmpty()) {
                             item(key = "bookmarks") {
-                                Box {
-                                    Column {
-                                        Spacer(Modifier.height(24.dp))
-                                        Text("Bookmarks", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
-                                        Spacer(Modifier.height(8.dp))
-                                        bookmarks.take(5).forEach { bm ->
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                Icon(Icons.Filled.Star, null, tint = PrimaryAccent, modifier = Modifier.size(16.dp))
-                                                Spacer(Modifier.width(10.dp))
-                                                bm.entry?.let { entry ->
-                                                    Column(Modifier.weight(1f)) {
-                                                        Text(entry.title, style = MaterialTheme.typography.bodySmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                                        Text(entry.artist ?: "", style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1)
-                                                    }
+                                Column {
+                                    Spacer(Modifier.height(24.dp))
+                                    Text("Bookmarks", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
+                                    Spacer(Modifier.height(8.dp))
+                                    bookmarks.take(5).forEach { bm ->
+                                        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Filled.Star, null, tint = PrimaryAccent, modifier = Modifier.size(16.dp))
+                                            Spacer(Modifier.width(10.dp))
+                                            bm.entry?.let { entry ->
+                                                Column(Modifier.weight(1f)) {
+                                                    Text(entry.title, style = MaterialTheme.typography.bodySmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                    Text(entry.artist ?: "", style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1)
                                                 }
                                             }
                                         }
@@ -408,22 +350,17 @@ fun LibraryScreenContent(
                         // Now Playing section
                         if (!nowPlaying.isNullOrEmpty()) {
                             item(key = "nowplaying") {
-                                Box {
-                                    Column {
-                                        Spacer(Modifier.height(24.dp))
-                                        Text("Now Playing", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
-                                        Spacer(Modifier.height(8.dp))
-                                        nowPlaying.take(5).forEach { np ->
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                Column(Modifier.weight(1f)) {
-                                                    Text(np.title, style = MaterialTheme.typography.bodySmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                                    Row {
-                                                        Text(np.artist ?: "", style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1)
-                                                        np.username?.let { Text(" · $it", style = MaterialTheme.typography.labelSmall, color = TextTertiary) }
-                                                    }
+                                Column {
+                                    Spacer(Modifier.height(24.dp))
+                                    Text("Now Playing", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
+                                    Spacer(Modifier.height(8.dp))
+                                    nowPlaying.take(5).forEach { np ->
+                                        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Column(Modifier.weight(1f)) {
+                                                Text(np.title, style = MaterialTheme.typography.bodySmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                Row {
+                                                    Text(np.artist ?: "", style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1)
+                                                    np.username?.let { Text(" · $it", style = MaterialTheme.typography.labelSmall, color = TextTertiary) }
                                                 }
                                             }
                                         }

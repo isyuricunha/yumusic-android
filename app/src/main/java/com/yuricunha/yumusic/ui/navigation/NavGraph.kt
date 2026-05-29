@@ -69,12 +69,6 @@ fun NavGraph(
                     onGenreClick = { genreName ->
                         navController.navigate(Route.genre(genreName))
                     },
-                    onFolderClick = { folderId, folderName ->
-                        navController.navigate(Route.folder(folderId, folderName))
-                    },
-                    onRadioClick = {
-                        navController.navigate(Route.RADIO_TAB)
-                    },
                 )
             }
 
@@ -117,6 +111,9 @@ fun NavGraph(
                 ArtistScreen(
                     onAlbumClick = { albumId ->
                         navController.navigate(Route.album(albumId))
+                    },
+                    onArtistClick = { artistId ->
+                        navController.navigate(Route.artist(artistId))
                     },
                     onBackClick = { navController.popBackStack() },
                 )

@@ -283,7 +283,7 @@ fun ArtistScreen(
                                     Spacer(Modifier.height(20.dp))
                                     Text("Similar Artists", style = MaterialTheme.typography.titleMedium, color = TextPrimary, modifier = Modifier.padding(horizontal = 20.dp))
                                     Spacer(Modifier.height(12.dp))
-                                    val onSimArtistClick = { id: String -> }
+                                    val onSimArtistClick = { id: String -> onArtistClick(id) }
                                     LazyRow(
                                         contentPadding = PaddingValues(horizontal = 20.dp),
                                         horizontalArrangement = Arrangement.spacedBy(12.dp),
