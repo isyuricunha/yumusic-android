@@ -159,3 +159,33 @@ data class PlaylistDetail(
     @SerializedName("coverArt") val coverArt: String?,
     @SerializedName("entry") val entries: List<TrackDto>?,
 )
+
+// ── getArtistInfo (biography, similar artists) ──────────────────────────
+// JSON: { "subsonic-response": { "status": "ok", "artistInfo": { "biography":"...","similarArtist":[...] } } }
+data class ArtistInfoResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("artistInfo") val artistInfo: ArtistInfo?,
+)
+
+data class ArtistInfo(
+    @SerializedName("biography") val biography: String?,
+    @SerializedName("musicBrainzId") val musicBrainzId: String?,
+    @SerializedName("lastFmUrl") val lastFmUrl: String?,
+    @SerializedName("imageUrl") val imageUrl: String?,
+    @SerializedName("similarArtist") val similarArtists: List<ArtistDto>?,
+)
+
+// ── getLyrics ───────────────────────────────────────────────────────────
+// JSON: { "subsonic-response": { "status": "ok", "lyrics": { "artist":"..","value":".." } } }
+data class LyricsResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("lyrics") val lyrics: LyricsData?,
+)
+
+data class LyricsData(
+    @SerializedName("artist") val artist: String?,
+    @SerializedName("title") val title: String?,
+    @SerializedName("value") val value: String?,
+)

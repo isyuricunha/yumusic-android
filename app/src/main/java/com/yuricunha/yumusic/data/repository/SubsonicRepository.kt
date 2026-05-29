@@ -2,6 +2,8 @@ package com.yuricunha.yumusic.data.repository
 
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.ArtistInfo
+import com.yuricunha.yumusic.data.api.LyricsData
 import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.SubsonicApiService
 import com.yuricunha.yumusic.data.api.TrackDto
@@ -16,6 +18,13 @@ import com.yuricunha.yumusic.data.db.TrackEntity
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
+
+data class AlbumData(
+    val albumName: String,
+    val artistName: String,
+    val artistId: String?,
+    val tracks: List<TrackDto>,
+)
 
 @Singleton
 class SubsonicRepository @Inject constructor(
@@ -94,7 +103,7 @@ class SubsonicRepository @Inject constructor(
         }
     }
 
-    suspend fun getTracksByAlbum(albumId: String): Result<Triple<String, String, List<TrackDto>>> {
+    suspend fun getTracksByAlbum(albumId: String): Result<AlbumData> {
         val config = getConfig()
         if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
         return try {
@@ -109,15 +118,16 @@ class SubsonicRepository @Inject constructor(
             val songs = albumDetail?.songs ?: emptyList()
             val albumName = albumDetail?.name ?: songs.firstOrNull()?.album ?: ""
             val artistName = albumDetail?.artist ?: songs.firstOrNull()?.artist ?: ""
+            val artistId = albumDetail?.artistId
             // Cache to Room
             trackDao.insertAll(songs.map { it.toEntity() })
-            Result.success(Triple(albumName, artistName, songs))
+            Result.success(AlbumData(albumName, artistName, artistId, songs))
         } catch (e: Exception) {
             val cached = trackDao.getByAlbumId(albumId).first()
             if (cached.isNotEmpty()) {
                 val name = cached.firstOrNull()?.album ?: ""
                 val artist = cached.firstOrNull()?.artist ?: ""
-                Result.success(Triple(name, artist, cached.map { it.toDto() }))
+                Result.success(AlbumData(name, artist, null, cached.map { it.toDto() }))
             } else {
                 Result.failure(e)
             }
@@ -241,6 +251,47 @@ class SubsonicRepository @Inject constructor(
             val error = response.response?.error
             if (error != null) return Result.failure(Exception(error.message))
             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Artist Info / Biography ──────────────────────────────────────────
+
+    suspend fun getArtistInfo(artistId: String): Result<ArtistInfo> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getArtistInfo(
+                artistId = artistId,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            val info = response.response?.artistInfo
+            if (info != null) Result.success(info) else Result.failure(Exception("No info"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Lyrics ───────────────────────────────────────────────────────────
+
+    suspend fun getLyrics(artist: String, title: String): Result<LyricsData> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getLyrics(
+                artist = artist,
+                title = title,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            val lyrics = response.response?.lyrics
+            if (lyrics != null && !lyrics.value.isNullOrEmpty()) Result.success(lyrics) else Result.failure(Exception("No lyrics"))
         } catch (e: Exception) {
             Result.failure(e)
         }

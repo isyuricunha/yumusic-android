@@ -102,4 +102,25 @@ interface SubsonicApiService {
         @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<SubsonicStatus>
+
+    @GET("rest/getArtistInfo")
+    suspend fun getArtistInfo(
+        @Query("id") artistId: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<ArtistInfoResponse>
+
+    @GET("rest/getLyrics")
+    suspend fun getLyrics(
+        @Query("artist") artist: String,
+        @Query("title") title: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<LyricsResponse>
 }

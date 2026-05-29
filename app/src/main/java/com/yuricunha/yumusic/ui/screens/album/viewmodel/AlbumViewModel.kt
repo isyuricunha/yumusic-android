@@ -17,6 +17,7 @@ import javax.inject.Inject
 data class AlbumUiState(
     val albumName: String = "",
     val artistName: String = "",
+    val artistId: String? = null,
     val tracks: ScreenState<List<TrackDto>> = ScreenState.Loading,
 )
 
@@ -40,11 +41,12 @@ class AlbumViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(tracks = ScreenState.Loading)
             repository.getTracksByAlbum(albumId)
-                .onSuccess { (albumName, artistName, tracks) ->
+                .onSuccess { data ->
                     _uiState.value = _uiState.value.copy(
-                        albumName = albumName,
-                        artistName = artistName,
-                        tracks = ScreenState.Success(tracks),
+                        albumName = data.albumName,
+                        artistName = data.artistName,
+                        artistId = data.artistId,
+                        tracks = ScreenState.Success(data.tracks),
                     )
                 }
                 .onFailure { e ->

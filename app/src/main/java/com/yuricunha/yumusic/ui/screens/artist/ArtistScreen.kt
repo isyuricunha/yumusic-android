@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -156,6 +157,56 @@ fun ArtistScreen(
                                     text = "${albums.size} albums",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = TextSecondary,
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                // Play button
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .clip(CircleShape)
+                                            .background(TextPrimary)
+                                            .clickable { viewModel.playAll() },
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.PlayArrow,
+                                            contentDescription = "Play all",
+                                            tint = Background,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                    }
+                                    Text(
+                                        text = "Play",
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = TextPrimary,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Biography section
+                    val bio = uiState.biography
+                    if (!bio.isNullOrBlank()) {
+                        item {
+                            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Text(
+                                    text = "Biography",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = TextPrimary,
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = bio,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary,
+                                    maxLines = 5,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             }
                         }

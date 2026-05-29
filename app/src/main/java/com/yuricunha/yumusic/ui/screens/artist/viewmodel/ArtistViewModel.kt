@@ -5,7 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.data.api.AlbumDto
+import com.yuricunha.yumusic.data.api.ArtistInfo
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
+import com.yuricunha.yumusic.player.PlayerConnection
 import com.yuricunha.yumusic.util.ScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,12 +19,14 @@ import javax.inject.Inject
 data class ArtistUiState(
     val artistName: String = "",
     val albums: ScreenState<List<AlbumDto>> = ScreenState.Loading,
+    val biography: String? = null,
 )
 
 @HiltViewModel
 class ArtistViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: SubsonicRepository,
+    private val playerConnection: PlayerConnection,
 ) : ViewModel() {
 
     private val artistId: String = savedStateHandle["artistId"] ?: ""
@@ -32,6 +36,7 @@ class ArtistViewModel @Inject constructor(
 
     init {
         loadAlbums()
+        loadBiography()
     }
 
     fun loadAlbums() {
@@ -48,6 +53,45 @@ class ArtistViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         albums = ScreenState.Error(e.message ?: "Unknown error"),
                     )
+                }
+        }
+    }
+
+    private fun loadBiography() {
+        viewModelScope.launch {
+            repository.getArtistInfo(artistId)
+                .onSuccess { info ->
+                    _uiState.value = _uiState.value.copy(biography = info.biography)
+                }
+                .onFailure { /* BIO unavailable, silently ignore */ }
+        }
+    }
+
+    fun playAll() {
+        val state = _uiState.value.albums
+        if (state !is ScreenState.Success) return
+        val albums = state.data
+        if (albums.isEmpty()) return
+        // Play all tracks from first album
+        val firstAlbumId = albums.first().id
+        viewModelScope.launch {
+            repository.getTracksByAlbum(firstAlbumId)
+                .onSuccess { data ->
+                    val mediaItems = data.tracks.map { track ->
+                        val streamUrl = repository.getStreamUrl(track.id)
+                        val coverArtUrl = track.coverArt?.let { repository.getCoverArtUrl(it) }
+                        playerConnection.buildMediaItem(
+                            streamUrl = streamUrl,
+                            id = track.id,
+                            title = track.title,
+                            artist = track.artist,
+                            album = track.album,
+                            coverArtUrl = coverArtUrl,
+                        )
+                    }
+                    if (mediaItems.isNotEmpty()) {
+                        playerConnection.play(mediaItems, 0)
+                    }
                 }
         }
     }

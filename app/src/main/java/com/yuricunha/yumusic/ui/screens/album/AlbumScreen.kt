@@ -58,6 +58,7 @@ import com.yuricunha.yumusic.util.ScreenState
 fun AlbumScreen(
     onBackClick: () -> Unit,
     onNavigateToPlayer: () -> Unit,
+    onArtistClick: (String) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
@@ -66,11 +67,13 @@ fun AlbumScreen(
     AlbumScreenContent(
         albumName = uiState.albumName,
         artistName = uiState.artistName,
+        artistId = uiState.artistId,
         tracksState = uiState.tracks,
         onTrackClick = { index ->
             viewModel.playTrack(index)
             onNavigateToPlayer()
         },
+        onArtistClick = { if (it.isNotEmpty()) onArtistClick(it) },
         onToggleStar = { trackId, starred ->
             viewModel.toggleStar(trackId, starred)
         },
@@ -86,8 +89,10 @@ fun AlbumScreen(
 fun AlbumScreenContent(
     albumName: String,
     artistName: String,
+    artistId: String?,
     tracksState: ScreenState<*>,
     onTrackClick: (Int) -> Unit,
+    onArtistClick: (String) -> Unit = {},
     onToggleStar: (String, Boolean) -> Unit = { _, _ -> },
     onBackClick: () -> Unit,
     onRetry: () -> Unit,
@@ -189,8 +194,11 @@ fun AlbumScreenContent(
                                 Text(
                                     text = artistName,
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = TextSecondary,
+                                    color = if (artistId != null) PrimaryAccent else TextSecondary,
                                     textAlign = TextAlign.Center,
+                                    modifier = if (artistId != null) {
+                                        Modifier.clickable { onArtistClick(artistId) }
+                                    } else Modifier,
                                 )
                             }
                         }

@@ -100,6 +100,9 @@ fun NavGraph(
                     onNavigateToPlayer = {
                         navController.navigate(Route.PLAYER)
                     },
+                    onArtistClick = { artistId ->
+                        navController.navigate(Route.artist(artistId))
+                    },
                 )
             }
 
