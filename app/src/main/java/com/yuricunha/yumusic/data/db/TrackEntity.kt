@@ -17,4 +17,5 @@ data class TrackEntity(
     val duration: Int?,
     val trackNumber: Int?,
     val coverArt: String?,
+    val starred: String?,
 )

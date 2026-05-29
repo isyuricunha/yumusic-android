@@ -12,6 +12,11 @@ data class SubsonicError(
     @SerializedName("message") val message: String,
 )
 
+data class SubsonicStatus(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+)
+
 // ── getArtists ─────────────────────────────────────────────────────────────
 // JSON: { "subsonic-response": { "status": "ok", "artists": { "index": [...] } } }
 data class ArtistsResponse(
@@ -86,6 +91,7 @@ data class TrackDto(
     @SerializedName("duration") val duration: Int?,
     @SerializedName("track") val trackNumber: Int?,
     @SerializedName("coverArt") val coverArt: String?,
+    @SerializedName("starred") val starred: String?,
 )
 
 // ── search3 ────────────────────────────────────────────────────────────────
@@ -112,4 +118,44 @@ data class AlbumList2Response(
 
 data class AlbumList2(
     @SerializedName("album") val albums: List<AlbumDto>?,
+)
+
+// ── getPlaylists ───────────────────────────────────────────────────────────
+// JSON: { "subsonic-response": { "status": "ok", "playlists": { "playlist": [...] } } }
+data class PlaylistsResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("playlists") val playlists: PlaylistList?,
+)
+
+data class PlaylistList(
+    @SerializedName("playlist") val playlists: List<PlaylistDto>?,
+)
+
+data class PlaylistDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("songCount") val songCount: Int?,
+    @SerializedName("duration") val duration: Int?,
+    @SerializedName("owner") val owner: String?,
+    @SerializedName("public") val isPublic: Boolean?,
+    @SerializedName("coverArt") val coverArt: String?,
+)
+
+// ── getPlaylist (single playlist with tracks) ──────────────────────────────
+// JSON: { "subsonic-response": { "status": "ok", "playlist": { "id":"..", "entry":[...] } } }
+data class PlaylistResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("playlist") val playlist: PlaylistDetail?,
+)
+
+data class PlaylistDetail(
+    @SerializedName("id") val id: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("songCount") val songCount: Int?,
+    @SerializedName("duration") val duration: Int?,
+    @SerializedName("owner") val owner: String?,
+    @SerializedName("coverArt") val coverArt: String?,
+    @SerializedName("entry") val entries: List<TrackDto>?,
 )

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.repository.SettingsRepository
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
 import com.yuricunha.yumusic.util.ScreenState
@@ -16,6 +17,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class LibraryUiState(
+    val artists: ScreenState<List<ArtistDto>> = ScreenState.Loading,
+    val playlists: ScreenState<List<PlaylistDto>> = ScreenState.Loading,
+)
+
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
     private val application: Application,
@@ -23,28 +29,50 @@ class LibraryViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<ScreenState<List<ArtistDto>>>(ScreenState.Loading)
-    val uiState: StateFlow<ScreenState<List<ArtistDto>>> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(LibraryUiState())
+    val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
 
     init {
-        loadArtists()
+        loadContent()
     }
 
-    fun loadArtists() {
+    fun loadContent() {
         viewModelScope.launch {
             val config = settingsRepository.serverConfig.first()
             if (!config.isConfigured) {
-                _uiState.value = ScreenState.Error(application.getString(R.string.error_not_configured))
+                _uiState.value = LibraryUiState(
+                    artists = ScreenState.Error(application.getString(R.string.error_not_configured)),
+                    playlists = ScreenState.Error(application.getString(R.string.error_not_configured)),
+                )
                 return@launch
             }
-            _uiState.value = ScreenState.Loading
-            repository.getArtists()
-                .onSuccess { artists ->
-                    _uiState.value = ScreenState.Success(artists)
-                }
-                .onFailure { e ->
-                    _uiState.value = ScreenState.Error(e.message ?: application.getString(R.string.error_not_configured))
-                }
+            _uiState.value = LibraryUiState(
+                artists = ScreenState.Loading,
+                playlists = ScreenState.Loading,
+            )
+
+            // Fetch artists and playlists concurrently
+            launch {
+                repository.getArtists()
+                    .onSuccess { artists ->
+                        _uiState.value = _uiState.value.copy(artists = ScreenState.Success(artists))
+                    }
+                    .onFailure { e ->
+                        _uiState.value = _uiState.value.copy(
+                            artists = ScreenState.Error(e.message ?: application.getString(R.string.error_not_configured))
+                        )
+                    }
+            }
+
+            launch {
+                repository.getPlaylists()
+                    .onSuccess { playlists ->
+                        _uiState.value = _uiState.value.copy(playlists = ScreenState.Success(playlists))
+                    }
+                    .onFailure {
+                        _uiState.value = _uiState.value.copy(playlists = ScreenState.Success(emptyList()))
+                    }
+            }
         }
     }
 

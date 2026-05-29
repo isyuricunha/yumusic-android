@@ -2,12 +2,15 @@ package com.yuricunha.yumusic.data.repository
 
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.SubsonicApiService
 import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.db.AlbumDao
 import com.yuricunha.yumusic.data.db.AlbumEntity
 import com.yuricunha.yumusic.data.db.ArtistDao
 import com.yuricunha.yumusic.data.db.ArtistEntity
+import com.yuricunha.yumusic.data.db.PlaylistDao
+import com.yuricunha.yumusic.data.db.PlaylistEntity
 import com.yuricunha.yumusic.data.db.TrackDao
 import com.yuricunha.yumusic.data.db.TrackEntity
 import kotlinx.coroutines.flow.first
@@ -21,6 +24,7 @@ class SubsonicRepository @Inject constructor(
     private val artistDao: ArtistDao,
     private val albumDao: AlbumDao,
     private val trackDao: TrackDao,
+    private val playlistDao: PlaylistDao,
 ) {
     private var cachedConfig: ServerConfig? = null
 
@@ -162,6 +166,86 @@ class SubsonicRepository @Inject constructor(
         }
     }
 
+    // ── Playlists ──────────────────────────────────────────────────────────
+
+    suspend fun getPlaylists(): Result<List<PlaylistDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getPlaylists(
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            val playlists = response.response?.playlists?.playlists ?: emptyList()
+            // Cache
+            playlistDao.deleteAll()
+            playlistDao.insertAll(playlists.map { it.toEntity() })
+            Result.success(playlists)
+        } catch (e: Exception) {
+            val cached = playlistDao.getAll().first()
+            if (cached.isNotEmpty()) {
+                Result.success(cached.map { it.toDto() })
+            } else {
+                Result.failure(e)
+            }
+        }
+    }
+
+    suspend fun getPlaylistTracks(playlistId: String): Result<List<TrackDto>> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getPlaylist(
+                playlistId = playlistId,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.playlist?.entries ?: emptyList())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Starred / Favorites ────────────────────────────────────────────────
+
+    suspend fun star(id: String): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.star(
+                id = id,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun unstar(id: String): Result<Unit> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.unstar(
+                id = id,
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     fun getStreamUrl(trackId: String): String {
         val config = getCachedConfig() ?: return "http://placeholder.example.com/rest/stream?id=$trackId"
         return "${buildBaseUrl(config)}/rest/stream?id=$trackId"
@@ -217,6 +301,7 @@ class SubsonicRepository @Inject constructor(
         duration = duration,
         trackNumber = trackNumber,
         coverArt = coverArt,
+        starred = starred,
     )
 
     private fun TrackEntity.toDto() = TrackDto(
@@ -228,5 +313,26 @@ class SubsonicRepository @Inject constructor(
         duration = duration,
         trackNumber = trackNumber,
         coverArt = coverArt,
+        starred = starred,
+    )
+
+    private fun PlaylistDto.toEntity() = PlaylistEntity(
+        id = id,
+        name = name,
+        songCount = songCount ?: 0,
+        duration = duration,
+        owner = owner,
+        coverArt = coverArt,
+        isPublic = isPublic,
+    )
+
+    private fun PlaylistEntity.toDto() = PlaylistDto(
+        id = id,
+        name = name,
+        songCount = songCount,
+        duration = duration,
+        owner = owner,
+        coverArt = coverArt,
+        isPublic = isPublic,
     )
 }

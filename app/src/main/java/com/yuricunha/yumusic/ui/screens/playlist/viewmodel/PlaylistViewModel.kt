@@ -1,4 +1,4 @@
-package com.yuricunha.yumusic.ui.screens.album.viewmodel
+package com.yuricunha.yumusic.ui.screens.playlist.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -14,23 +14,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class AlbumUiState(
-    val albumName: String = "",
-    val artistName: String = "",
+data class PlaylistUiState(
+    val playlistName: String = "",
     val tracks: ScreenState<List<TrackDto>> = ScreenState.Loading,
 )
 
 @HiltViewModel
-class AlbumViewModel @Inject constructor(
+class PlaylistViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: SubsonicRepository,
     private val playerConnection: PlayerConnection,
 ) : ViewModel() {
 
-    private val albumId: String = savedStateHandle["albumId"] ?: ""
+    private val playlistId: String = savedStateHandle["playlistId"] ?: ""
+    private val playlistName: String = savedStateHandle["playlistName"] ?: ""
 
-    private val _uiState = MutableStateFlow(AlbumUiState())
-    val uiState: StateFlow<AlbumUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(PlaylistUiState(playlistName = playlistName))
+    val uiState: StateFlow<PlaylistUiState> = _uiState.asStateFlow()
 
     init {
         loadTracks()
@@ -39,13 +39,9 @@ class AlbumViewModel @Inject constructor(
     fun loadTracks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(tracks = ScreenState.Loading)
-            repository.getTracksByAlbum(albumId)
-                .onSuccess { (albumName, artistName, tracks) ->
-                    _uiState.value = _uiState.value.copy(
-                        albumName = albumName,
-                        artistName = artistName,
-                        tracks = ScreenState.Success(tracks),
-                    )
+            repository.getPlaylistTracks(playlistId)
+                .onSuccess { tracks ->
+                    _uiState.value = _uiState.value.copy(tracks = ScreenState.Success(tracks))
                 }
                 .onFailure { e ->
                     _uiState.value = _uiState.value.copy(
@@ -81,15 +77,5 @@ class AlbumViewModel @Inject constructor(
     fun getCoverArtUrl(coverArtId: String?): String? {
         if (coverArtId.isNullOrEmpty()) return null
         return repository.getCoverArtUrl(coverArtId)
-    }
-
-    fun toggleStar(trackId: String, currentlyStarred: Boolean) {
-        viewModelScope.launch {
-            if (currentlyStarred) {
-                repository.unstar(trackId)
-            } else {
-                repository.star(trackId)
-            }
-        }
     }
 }

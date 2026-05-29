@@ -14,6 +14,7 @@ import com.yuricunha.yumusic.ui.screens.artist.ArtistScreen
 import com.yuricunha.yumusic.ui.screens.home.HomeScreen
 import com.yuricunha.yumusic.ui.screens.library.LibraryScreen
 import com.yuricunha.yumusic.ui.screens.player.PlayerScreen
+import com.yuricunha.yumusic.ui.screens.playlist.PlaylistScreen
 import com.yuricunha.yumusic.ui.screens.search.SearchScreen
 import com.yuricunha.yumusic.ui.screens.settings.SettingsScreen
 
@@ -46,6 +47,9 @@ fun NavGraph(
                 LibraryScreen(
                     onArtistClick = { artistId ->
                         navController.navigate(Route.artist(artistId))
+                    },
+                    onPlaylistClick = { playlistId, playlistName ->
+                        navController.navigate(Route.playlist(playlistId, playlistName))
                     },
                 )
             }
@@ -102,6 +106,21 @@ fun NavGraph(
             composable(Route.PLAYER) {
                 PlayerScreen(
                     onBackClick = { navController.popBackStack() },
+                )
+            }
+
+            composable(
+                route = Route.PLAYLIST,
+                arguments = listOf(
+                    navArgument("playlistId") { type = NavType.StringType },
+                    navArgument("playlistName") { type = NavType.StringType },
+                ),
+            ) { backStackEntry ->
+                PlaylistScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToPlayer = {
+                        navController.navigate(Route.PLAYER)
+                    },
                 )
             }
         }

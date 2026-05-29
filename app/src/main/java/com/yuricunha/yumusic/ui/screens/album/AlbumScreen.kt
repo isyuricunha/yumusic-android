@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -69,6 +71,9 @@ fun AlbumScreen(
             viewModel.playTrack(index)
             onNavigateToPlayer()
         },
+        onToggleStar = { trackId, starred ->
+            viewModel.toggleStar(trackId, starred)
+        },
         onBackClick = onBackClick,
         onRetry = viewModel::loadTracks,
         getCoverArtUrl = viewModel::getCoverArtUrl,
@@ -83,6 +88,7 @@ fun AlbumScreenContent(
     artistName: String,
     tracksState: ScreenState<*>,
     onTrackClick: (Int) -> Unit,
+    onToggleStar: (String, Boolean) -> Unit = { _, _ -> },
     onBackClick: () -> Unit,
     onRetry: () -> Unit,
     getCoverArtUrl: (String?) -> String?,
@@ -235,6 +241,17 @@ fun AlbumScreenContent(
                                 style = MaterialTheme.typography.labelMedium,
                                 color = TextTertiary,
                             )
+                            IconButton(
+                                onClick = { onToggleStar(track.id, track.starred != null) },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(
+                                    imageVector = if (track.starred != null) Icons.Filled.Star else Icons.Filled.StarBorder,
+                                    contentDescription = if (track.starred != null) "Unstar" else "Star",
+                                    tint = if (track.starred != null) PrimaryAccent else TextTertiary,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                         }
                         if (index < tracks.lastIndex) {
                             HorizontalDivider(

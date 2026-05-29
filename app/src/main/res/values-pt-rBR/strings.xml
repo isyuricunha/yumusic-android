@@ -16,12 +16,15 @@
     <string name="screen_artist">Artista</string>
     <string name="screen_album">Álbum</string>
     <string name="screen_settings">Configuração do Servidor</string>
+    <string name="screen_playlist">Playlist</string>
 
     <!-- Home -->
     <string name="home_section_random_albums">Álbuns Aleatórios</string>
 
     <!-- Library -->
     <string name="library_albums_count">%1$d álbuns</string>
+    <string name="library_section_playlists">Playlists</string>
+    <string name="library_section_artists">Artistas</string>
 
     <!-- Search -->
     <string name="search_placeholder">Buscar artistas, álbuns, músicas…</string>
@@ -70,6 +73,7 @@
     <string name="search_section_songs">Músicas</string>
     <string name="library_empty">Nenhum artista encontrado</string>
     <string name="search_empty">Nenhum resultado encontrado</string>
+    <string name="playlist_empty">Esta playlist está vazia</string>
     <string name="screen_albums_count">%1$d álbuns</string>
     <string name="error_not_configured">Servidor não configurado</string>
     <string name="error_server_url_required">URL do servidor é obrigatória</string>

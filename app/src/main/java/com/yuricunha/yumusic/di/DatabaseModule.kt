@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.yuricunha.yumusic.data.db.AlbumDao
 import com.yuricunha.yumusic.data.db.AppDatabase
 import com.yuricunha.yumusic.data.db.ArtistDao
+import com.yuricunha.yumusic.data.db.PlaylistDao
 import com.yuricunha.yumusic.data.db.TrackDao
 import dagger.Module
 import dagger.Provides
@@ -39,4 +40,7 @@ object DatabaseModule {
 
     @Provides
     fun provideTrackDao(database: AppDatabase): TrackDao = database.trackDao()
+
+    @Provides
+    fun providePlaylistDao(database: AppDatabase): PlaylistDao = database.playlistDao()
 }

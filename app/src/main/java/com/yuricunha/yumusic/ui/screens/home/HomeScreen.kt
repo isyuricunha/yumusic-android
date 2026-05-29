@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -27,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -84,6 +84,9 @@ fun HomeScreenContent(
     getCoverArtUrl: (String?) -> String?,
     modifier: Modifier = Modifier,
 ) {
+    val isLoading = artistsState is ScreenState.Loading || randomAlbumsState is ScreenState.Loading
+    val isError = artistsState is ScreenState.Error && randomAlbumsState is ScreenState.Error
+
     Column(modifier = modifier.fillMaxSize()) {
         TopAppBar(
             title = {
@@ -108,62 +111,61 @@ fun HomeScreenContent(
             ),
         )
 
-        val isLoading = artistsState is ScreenState.Loading || randomAlbumsState is ScreenState.Loading
-        val isError = artistsState is ScreenState.Error && randomAlbumsState is ScreenState.Error
-
-        when {
-            isLoading && !isError -> {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = PrimaryAccent)
-                }
+        if (isLoading && !isError) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(color = PrimaryAccent)
             }
-            isError -> {
-                val errorState = (artistsState as? ScreenState.Error) ?: (randomAlbumsState as? ScreenState.Error)
+        } else if (isError) {
+            val errorState = (artistsState as? ScreenState.Error) ?: (randomAlbumsState as? ScreenState.Error)
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = errorState?.message ?: stringResource(R.string.error_not_configured),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextTertiary,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.action_retry),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = PrimaryAccent,
+                    modifier = Modifier.clickable { onRetry() },
+                )
+            }
+        } else {
+            @Suppress("UNCHECKED_CAST")
+            val artists = (artistsState as? ScreenState.Success)?.data as? List<ArtistDto>
+            @Suppress("UNCHECKED_CAST")
+            val randomAlbums = (randomAlbumsState as? ScreenState.Success)?.data as? List<AlbumDto>
+
+            val hasContent = (!artists.isNullOrEmpty()) || (!randomAlbums.isNullOrEmpty())
+
+            if (!hasContent) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        text = errorState?.message ?: stringResource(R.string.error_not_configured),
+                        text = stringResource(R.string.home_empty),
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextTertiary,
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = stringResource(R.string.action_retry),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = PrimaryAccent,
-                        modifier = Modifier.clickable { onRetry() },
-                    )
                 }
-            }
-            else -> {
-                @Suppress("UNCHECKED_CAST")
-                val artists = (artistsState as? ScreenState.Success)?.data as? List<ArtistDto>
-                @Suppress("UNCHECKED_CAST")
-                val randomAlbums = (randomAlbumsState as? ScreenState.Success)?.data as? List<AlbumDto>
-
-                val hasContent = (!artists.isNullOrEmpty()) || (!randomAlbums.isNullOrEmpty())
-
-                if (!hasContent) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.home_empty),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = TextTertiary,
-                        )
-                    }
-                } else {
+            } else {
+                PullToRefreshBox(
+                    isRefreshing = isLoading,
+                    onRefresh = onRetry,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 16.dp),
@@ -310,7 +312,6 @@ fun HomeScreenContent(
                                             }
                                         }
                                     }
-                                    // Fill empty space if odd number
                                     if (row.size == 1) {
                                         Spacer(modifier = Modifier.weight(1f))
                                     }

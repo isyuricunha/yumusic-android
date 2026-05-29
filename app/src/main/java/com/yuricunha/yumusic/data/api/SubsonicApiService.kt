@@ -63,4 +63,43 @@ interface SubsonicApiService {
         @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<AlbumList2Response>
+
+    @GET("rest/getPlaylists")
+    suspend fun getPlaylists(
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<PlaylistsResponse>
+
+    @GET("rest/getPlaylist")
+    suspend fun getPlaylist(
+        @Query("id") playlistId: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<PlaylistResponse>
+
+    @GET("rest/star")
+    suspend fun star(
+        @Query("id") id: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SubsonicStatus>
+
+    @GET("rest/unstar")
+    suspend fun unstar(
+        @Query("id") id: String,
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<SubsonicStatus>
 }
