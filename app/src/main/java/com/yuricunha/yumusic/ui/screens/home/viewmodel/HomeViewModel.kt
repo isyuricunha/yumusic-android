@@ -82,7 +82,7 @@ class HomeViewModel @Inject constructor(
         }
 
         // Fetch random songs
-        launch {
+        viewModelScope.launch {
             repository.getRandomSongs(10)
                 .onSuccess { songs ->
                     _uiState.value = _uiState.value.copy(randomSongs = songs)
