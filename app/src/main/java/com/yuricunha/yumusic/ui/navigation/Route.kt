@@ -20,7 +20,6 @@ object Route {
     const val PLAYLIST = "playlist/{playlistId}/{playlistName}"
     const val GENRE = "genre/{genreName}"
     const val FOLDER = "folder/{folderId}/{folderName}"
-    const val RADIO = "radio"
     const val PLAYER = "player"
 
     fun artist(artistId: String) = "artist/$artistId"

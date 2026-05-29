@@ -19,7 +19,6 @@ import com.yuricunha.yumusic.ui.screens.player.PlayerScreen
 import com.yuricunha.yumusic.ui.screens.playlist.PlaylistScreen
 import com.yuricunha.yumusic.ui.screens.playlists.PlaylistsScreen
 import com.yuricunha.yumusic.ui.screens.radio.RadioTabScreen
-import com.yuricunha.yumusic.ui.screens.radio.RadioScreen
 import com.yuricunha.yumusic.ui.screens.search.SearchScreen
 import com.yuricunha.yumusic.ui.screens.settings.SettingsScreen
 
@@ -74,7 +73,7 @@ fun NavGraph(
                         navController.navigate(Route.folder(folderId, folderName))
                     },
                     onRadioClick = {
-                        navController.navigate(Route.RADIO)
+                        navController.navigate(Route.RADIO_TAB)
                     },
                 )
             }
