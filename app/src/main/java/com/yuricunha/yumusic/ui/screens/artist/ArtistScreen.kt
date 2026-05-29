@@ -16,11 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -36,11 +35,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
@@ -63,28 +65,6 @@ fun ArtistScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    ArtistScreenContent(
-        artistName = uiState.artistName,
-        albumsState = uiState.albums,
-        onAlbumClick = onAlbumClick,
-        onBackClick = onBackClick,
-        onRetry = viewModel::loadAlbums,
-        getCoverArtUrl = viewModel::getCoverArtUrl,
-        modifier = modifier,
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ArtistScreenContent(
-    artistName: String,
-    albumsState: ScreenState<*>,
-    onAlbumClick: (String) -> Unit,
-    onBackClick: () -> Unit,
-    onRetry: () -> Unit,
-    getCoverArtUrl: (String?) -> String?,
-    modifier: Modifier = Modifier,
-) {
     Column(modifier = modifier.fillMaxSize()) {
         TopAppBar(
             title = {},
@@ -98,11 +78,11 @@ fun ArtistScreenContent(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Background,
+                containerColor = Background.copy(alpha = 0f),
             ),
         )
 
-        when (albumsState) {
+        when (uiState.albums) {
             is ScreenState.Loading -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -112,144 +92,146 @@ fun ArtistScreenContent(
                 }
             }
             is ScreenState.Error -> {
-                Column(
+                Box(
                     modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = albumsState.message,
-                        style = MaterialTheme.typography.bodyLarge,
+                        text = (uiState.albums as ScreenState.Error).message,
                         color = TextTertiary,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = stringResource(R.string.action_retry),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = PrimaryAccent,
-                        modifier = Modifier.clickable { onRetry() },
                     )
                 }
             }
             is ScreenState.Success -> {
                 @Suppress("UNCHECKED_CAST")
-                val albums = albumsState.data as? List<AlbumDto> ?: emptyList()
+                val albums = (uiState.albums as ScreenState.Success).data as? List<AlbumDto> ?: emptyList()
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    // Hero artwork — first album's art, or a large placeholder
-                    if (albums.isNotEmpty()) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(280.dp),
-                                contentAlignment = Alignment.BottomStart,
-                            ) {
-                                AlbumArt(
-                                    coverArtUrl = getCoverArtUrl(albums.firstOrNull()?.coverArt),
-                                    contentDescription = artistName,
-                                    modifier = Modifier
-                                        .fillMaxSize(),
-                                    cornerRadius = 0.dp,
-                                )
-                                // Gradient overlay for text readability
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(100.dp)
-                                        .background(
-                                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                                                colors = listOf(
-                                                    androidx.compose.ui.graphics.Color.Transparent,
-                                                    Background,
-                                                )
-                                            )
-                                        ),
-                                )
-                                Text(
-                                    text = artistName,
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontWeight = FontWeight.Normal,
-                                    ),
-                                    color = TextPrimary,
-                                    modifier = Modifier.padding(start = 16.dp, bottom = 16.dp),
-                                )
-                            }
-                        }
-                    } else if (artistName.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = artistName,
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Normal,
-                                ),
-                                color = TextPrimary,
-                                modifier = Modifier.padding(start = 16.dp, bottom = 16.dp),
-                            )
-                        }
-                    }
-
-                    // Albums section header
-                    if (albums.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = stringResource(R.string.screen_albums_count, albums.size),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = TextTertiary,
-                                modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 12.dp),
-                            )
-                        }
-                    }
-
-                    // Album list — clean rows with artwork
-                    itemsIndexed(albums) { index, album ->
-                        Row(
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    // Hero header
+                    item {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onAlbumClick(album.id) }
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                .height(320.dp),
                         ) {
-                            AlbumArt(
-                                coverArtUrl = getCoverArtUrl(album.coverArt),
-                                contentDescription = album.name,
-                                modifier = Modifier.size(56.dp),
-                                cornerRadius = 4.dp,
+                            // Hero art
+                            AsyncImage(
+                                model = viewModel.getCoverArtUrl(albums.firstOrNull()?.coverArt),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize(),
                             )
-                            Column(modifier = Modifier.weight(1f)) {
+
+                            // Gradient overlay
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colors = listOf(
+                                                Background.copy(alpha = 0.1f),
+                                                Background,
+                                            ),
+                                            startY = 0f,
+                                            endY = 500f,
+                                        )
+                                    ),
+                            )
+
+                            // Artist name overlay
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                            ) {
                                 Text(
-                                    text = album.name,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    text = uiState.artistName.ifEmpty { stringResource(R.string.screen_artist) },
+                                    style = MaterialTheme.typography.displaySmall,
                                     color = TextPrimary,
-                                    maxLines = 1,
+                                    maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                 )
-                                val info = buildString {
-                                    album.year?.let { append(it.toString()) }
-                                    album.songCount?.let {
-                                        if (isNotEmpty()) append(" · ")
-                                        append(stringResource(R.string.album_track_count, it))
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "${albums.size} albums",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextSecondary,
+                                )
+                            }
+                        }
+                    }
+
+                    // Albums section
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Discography",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = TextPrimary,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                        )
+                    }
+
+                    // Album grid — 2 columns
+                    val chunked = albums.chunked(2)
+                    for (chunk in chunked) {
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                chunk.forEach { album ->
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable { onAlbumClick(album.id) },
+                                    ) {
+                                        AlbumArt(
+                                            coverArtUrl = viewModel.getCoverArtUrl(album.coverArt),
+                                            contentDescription = album.name,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .aspectRatio(1f),
+                                            cornerRadius = 6.dp,
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = album.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = TextPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        val info = buildString {
+                                            album.year?.let { append(it.toString()) }
+                                            album.songCount?.let {
+                                                if (isNotEmpty()) append(" · ")
+                                                append("$it tracks")
+                                            }
+                                        }
+                                        if (info.isNotEmpty()) {
+                                            Text(
+                                                text = info,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = TextTertiary,
+                                            )
+                                        }
                                     }
                                 }
-                                if (info.isNotEmpty()) {
-                                    Text(
-                                        text = info,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = TextTertiary,
-                                    )
+                                if (chunk.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }
-                        if (index < albums.lastIndex) {
-                            HorizontalDivider(
-                                color = Divider,
-                                thickness = 0.5.dp,
-                                modifier = Modifier.padding(start = 86.dp),
-                            )
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.yuricunha.yumusic.ui.screens.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,36 +8,41 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
@@ -60,268 +66,293 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    HomeScreenContent(
-        artistsState = uiState.artists,
-        randomAlbumsState = uiState.randomAlbums,
-        onArtistClick = onArtistClick,
-        onAlbumClick = onAlbumClick,
-        onSettingsClick = onSettingsClick,
-        onRetry = viewModel::loadContent,
-        getCoverArtUrl = viewModel::getCoverArtUrl,
-        modifier = modifier,
-    )
+    val isLoading = uiState.artists is ScreenState.Loading || uiState.randomAlbums is ScreenState.Loading
+    val isError = uiState.artists is ScreenState.Error && uiState.randomAlbums is ScreenState.Error
+
+    PullToRefreshBox(
+        isRefreshing = isLoading,
+        onRefresh = viewModel::loadContent,
+        modifier = modifier.fillMaxSize(),
+    ) {
+        when {
+            isLoading && !isError -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = PrimaryAccent)
+                }
+            }
+            isError -> {
+                val msg = (uiState.artists as? ScreenState.Error)?.message
+                    ?: stringResource(R.string.error_not_configured)
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(text = msg, style = MaterialTheme.typography.bodyLarge, color = TextTertiary)
+                }
+            }
+            else -> {
+                @Suppress("UNCHECKED_CAST")
+                val artists = (uiState.artists as? ScreenState.Success)?.data as? List<ArtistDto>
+                @Suppress("UNCHECKED_CAST")
+                val randomAlbums = (uiState.randomAlbums as? ScreenState.Success)?.data as? List<AlbumDto>
+
+                HomeContent(
+                    artists = artists ?: emptyList(),
+                    randomAlbums = randomAlbums ?: emptyList(),
+                    onArtistClick = onArtistClick,
+                    onAlbumClick = onAlbumClick,
+                    onSettingsClick = onSettingsClick,
+                    getCoverArtUrl = viewModel::getCoverArtUrl,
+                )
+            }
+        }
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenContent(
-    artistsState: ScreenState<*>,
-    randomAlbumsState: ScreenState<*>,
+private fun HomeContent(
+    artists: List<ArtistDto>,
+    randomAlbums: List<AlbumDto>,
     onArtistClick: (String) -> Unit,
-    onAlbumClick: (String) -> Unit = {},
+    onAlbumClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onRetry: () -> Unit,
     getCoverArtUrl: (String?) -> String?,
-    modifier: Modifier = Modifier,
 ) {
-    val isLoading = artistsState is ScreenState.Loading || randomAlbumsState is ScreenState.Loading
-    val isError = artistsState is ScreenState.Error && randomAlbumsState is ScreenState.Error
-
-    Column(modifier = modifier.fillMaxSize()) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = stringResource(R.string.screen_home),
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                    ),
-                )
-            },
-            actions = {
-                IconButton(onClick = onSettingsClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Settings,
-                        contentDescription = stringResource(R.string.screen_settings),
-                        tint = TextSecondary,
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Background,
-            ),
-        )
-
-        if (isLoading && !isError) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(color = PrimaryAccent)
-            }
-        } else if (isError) {
-            val errorState = (artistsState as? ScreenState.Error) ?: (randomAlbumsState as? ScreenState.Error)
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = errorState?.message ?: stringResource(R.string.error_not_configured),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = TextTertiary,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = stringResource(R.string.action_retry),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = PrimaryAccent,
-                    modifier = Modifier.clickable { onRetry() },
-                )
-            }
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            val artists = (artistsState as? ScreenState.Success)?.data as? List<ArtistDto>
-            @Suppress("UNCHECKED_CAST")
-            val randomAlbums = (randomAlbumsState as? ScreenState.Success)?.data as? List<AlbumDto>
-
-            val hasContent = (!artists.isNullOrEmpty()) || (!randomAlbums.isNullOrEmpty())
-
-            if (!hasContent) {
-                Column(
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 80.dp),
+    ) {
+        // ── Trending / Featured Hero ─────────────────────────────────────
+        if (artists.isNotEmpty()) {
+            item {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                        .fillMaxWidth()
+                        .height(300.dp),
+                ) {
+                    // Hero background image
+                    AsyncImage(
+                        model = getCoverArtUrl(artists.first().coverArt),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+
+                    // Gradient overlay for readability
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Background.copy(alpha = 0.3f),
+                                        Background,
+                                    ),
+                                    startY = 0f,
+                                    endY = 600f,
+                                )
+                            ),
+                    )
+
+                    // Settings button
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(Background.copy(alpha = 0.5f))
+                            .clickable { onSettingsClick() },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.screen_settings),
+                            tint = TextSecondary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+
+                    // Hero text
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(horizontal = 20.dp, vertical = 24.dp),
+                    ) {
+                        Text(
+                            text = "Featured Artist",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = PrimaryAccent,
+                            letterSpacing = 2.sp,
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = artists.first().name,
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = TextPrimary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (artists.first().albumCount != null) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "${artists.first().albumCount} albums",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondary,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(TextPrimary)
+                                .clickable { onArtistClick(artists.first().id) }
+                                .padding(horizontal = 24.dp, vertical = 10.dp),
+                        ) {
+                            Text(
+                                text = "View Artist",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Background,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Quick link to Library ────────────────────────────────────────
+        if (artists.size > 1) {
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = stringResource(R.string.home_empty),
-                        style = MaterialTheme.typography.bodyLarge,
+                        text = "Browse All Artists",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary,
+                    )
+                    Text(
+                        text = "See All",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = TextSecondary,
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(artists.drop(1).take(10)) { artist ->
+                        Column(
+                            modifier = Modifier
+                                .width(140.dp)
+                                .clickable { onArtistClick(artist.id) },
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            AlbumArt(
+                                coverArtUrl = getCoverArtUrl(artist.coverArt),
+                                contentDescription = artist.name,
+                                modifier = Modifier
+                                    .width(140.dp)
+                                    .height(140.dp),
+                                cornerRadius = 70.dp,
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = artist.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = "${artist.albumCount ?: 0} albums",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextTertiary,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Random Albums ────────────────────────────────────────────────
+        if (randomAlbums.isNotEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(28.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Discover",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary,
+                    )
+                    Text(
+                        text = "${randomAlbums.size} albums",
+                        style = MaterialTheme.typography.labelSmall,
                         color = TextTertiary,
                     )
                 }
-            } else {
-                PullToRefreshBox(
-                    isRefreshing = isLoading,
-                    onRefresh = onRetry,
-                    modifier = Modifier.fillMaxSize(),
+                Spacer(modifier = Modifier.height(12.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp),
-                    ) {
-                        // Random Albums section
-                        if (!randomAlbums.isNullOrEmpty()) {
-                            item {
-                                Spacer(modifier = Modifier.height(8.dp))
+                    items(randomAlbums) { album ->
+                        Column(
+                            modifier = Modifier
+                                .width(160.dp)
+                                .clickable { onAlbumClick(album.id) },
+                        ) {
+                            AlbumArt(
+                                coverArtUrl = getCoverArtUrl(album.coverArt),
+                                contentDescription = album.name,
+                                modifier = Modifier
+                                    .width(160.dp)
+                                    .height(160.dp)
+                                    .aspectRatio(1f),
+                                cornerRadius = 6.dp,
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Text(
+                                text = album.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            if (!album.artist.isNullOrEmpty()) {
                                 Text(
-                                    text = stringResource(R.string.home_section_random_albums),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = TextPrimary,
-                                    modifier = Modifier.padding(start = 16.dp, bottom = 12.dp),
+                                    text = album.artist,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = TextTertiary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
-                                LazyRow(
-                                    contentPadding = PaddingValues(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                ) {
-                                    items(randomAlbums) { album ->
-                                        Column(
-                                            modifier = Modifier
-                                                .width(150.dp)
-                                                .clickable { onAlbumClick(album.id) },
-                                        ) {
-                                            AlbumArt(
-                                                coverArtUrl = getCoverArtUrl(album.coverArt),
-                                                contentDescription = album.name,
-                                                modifier = Modifier
-                                                    .width(150.dp)
-                                                    .height(150.dp),
-                                                cornerRadius = 4.dp,
-                                            )
-                                            Spacer(modifier = Modifier.height(6.dp))
-                                            Text(
-                                                text = album.name,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = TextPrimary,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                            if (!album.artist.isNullOrEmpty()) {
-                                                Text(
-                                                    text = album.artist,
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    color = TextTertiary,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Featured artist — first one, large artwork
-                        if (!artists.isNullOrEmpty()) {
-                            item {
-                                Spacer(modifier = Modifier.height(if (randomAlbums.isNullOrEmpty()) 8.dp else 24.dp))
-                                Text(
-                                    text = stringResource(R.string.home_section_artists),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = TextPrimary,
-                                    modifier = Modifier.padding(start = 16.dp, bottom = 12.dp),
-                                )
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                        .clickable { onArtistClick(artists[0].id) },
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                    verticalAlignment = Alignment.Bottom,
-                                ) {
-                                    AlbumArt(
-                                        coverArtUrl = getCoverArtUrl(artists[0].coverArt),
-                                        contentDescription = artists[0].name,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(200.dp),
-                                        cornerRadius = 4.dp,
-                                    )
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = artists[0].name,
-                                            style = MaterialTheme.typography.headlineSmall.copy(
-                                                fontWeight = FontWeight.Normal,
-                                            ),
-                                            color = TextPrimary,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                        if (artists[0].albumCount != null) {
-                                            Text(
-                                                text = stringResource(R.string.library_albums_count, artists[0].albumCount ?: 0),
-                                                style = MaterialTheme.typography.labelMedium,
-                                                color = TextTertiary,
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Artist grid — 2 columns
-                        if (!artists.isNullOrEmpty() && artists.size > 1) {
-                            item {
-                                Spacer(modifier = Modifier.height(28.dp))
-                            }
-                            items(artists.drop(1).chunked(2)) { row ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                ) {
-                                    row.forEach { artist ->
-                                        Column(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .clickable { onArtistClick(artist.id) },
-                                        ) {
-                                            AlbumArt(
-                                                coverArtUrl = getCoverArtUrl(artist.coverArt),
-                                                contentDescription = artist.name,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(160.dp),
-                                                cornerRadius = 4.dp,
-                                            )
-                                            Spacer(modifier = Modifier.height(6.dp))
-                                            Text(
-                                                text = artist.name,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = TextPrimary,
-                                                maxLines = 1,
-                                                overflow = TextOverflow.Ellipsis,
-                                            )
-                                            if (artist.albumCount != null) {
-                                                Text(
-                                                    text = stringResource(R.string.library_albums_count, artist.albumCount),
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    color = TextTertiary,
-                                                )
-                                            }
-                                        }
-                                    }
-                                    if (row.size == 1) {
-                                        Spacer(modifier = Modifier.weight(1f))
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
                             }
                         }
                     }
                 }
             }
+        }
+
+        // Bottom spacer
+        item {
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
