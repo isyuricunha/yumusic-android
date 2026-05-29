@@ -26,6 +26,7 @@ data class PlayerUiState(
     val title: String = "",
     val artist: String = "",
     val coverArtUrl: String? = null,
+    val trackId: String? = null,
     val progress: Float = 0f,
     val duration: Long = 0L,
     val currentPosition: Long = 0L,
@@ -126,6 +127,7 @@ class PlayerConnection @Inject constructor(
                 title = mediaMetadata?.title?.toString() ?: "",
                 artist = player.currentMediaItem?.mediaMetadata?.artist?.toString() ?: "",
                 coverArtUrl = player.currentMediaItem?.mediaMetadata?.artworkUri?.toString(),
+                trackId = player.currentMediaItem?.mediaId,
                 progress = if (player.duration > 0) {
                     player.currentPosition.toFloat() / player.duration.toFloat()
                 } else 0f,

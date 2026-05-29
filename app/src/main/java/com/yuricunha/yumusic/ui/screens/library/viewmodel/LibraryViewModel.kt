@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.BookmarkDto
 import com.yuricunha.yumusic.data.api.GenreDto
+import com.yuricunha.yumusic.data.api.NowPlayingEntry
 import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.repository.SettingsRepository
@@ -24,6 +26,8 @@ data class LibraryUiState(
     val playlists: ScreenState<List<PlaylistDto>> = ScreenState.Loading,
     val starred: ScreenState<List<TrackDto>> = ScreenState.Loading,
     val genres: ScreenState<List<GenreDto>> = ScreenState.Loading,
+    val bookmarks: ScreenState<List<BookmarkDto>> = ScreenState.Loading,
+    val nowPlaying: ScreenState<List<NowPlayingEntry>> = ScreenState.Loading,
 )
 
 @HiltViewModel
@@ -55,9 +59,11 @@ class LibraryViewModel @Inject constructor(
                 playlists = ScreenState.Loading,
                 starred = ScreenState.Loading,
                 genres = ScreenState.Loading,
+                bookmarks = ScreenState.Loading,
+                nowPlaying = ScreenState.Loading,
             )
 
-            // Fetch artists, playlists, starred, and genres concurrently
+            // Fetch artists, playlists, starred, genres, bookmarks, nowPlaying concurrently
             launch {
                 repository.getArtists()
                     .onSuccess { artists ->
@@ -101,6 +107,26 @@ class LibraryViewModel @Inject constructor(
                     }
                     .onFailure {
                         _uiState.value = _uiState.value.copy(genres = ScreenState.Success(emptyList()))
+                    }
+            }
+
+            launch {
+                repository.getBookmarks()
+                    .onSuccess { bookmarks ->
+                        _uiState.value = _uiState.value.copy(bookmarks = ScreenState.Success(bookmarks))
+                    }
+                    .onFailure {
+                        _uiState.value = _uiState.value.copy(bookmarks = ScreenState.Success(emptyList()))
+                    }
+            }
+
+            launch {
+                repository.getNowPlaying()
+                    .onSuccess { entries ->
+                        _uiState.value = _uiState.value.copy(nowPlaying = ScreenState.Success(entries))
+                    }
+                    .onFailure {
+                        _uiState.value = _uiState.value.copy(nowPlaying = ScreenState.Success(emptyList()))
                     }
             }
         }

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.repository.SettingsRepository
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
 import com.yuricunha.yumusic.util.ScreenState
@@ -20,6 +21,7 @@ import javax.inject.Inject
 data class HomeUiState(
     val artists: ScreenState<List<ArtistDto>> = ScreenState.Loading,
     val randomAlbums: ScreenState<List<AlbumDto>> = ScreenState.Loading,
+    val randomSongs: List<TrackDto> = emptyList(),
 )
 
 @HiltViewModel
@@ -77,6 +79,15 @@ class HomeViewModel @Inject constructor(
             // Wait for both to complete
             artistsDeferred.join()
             albumsDeferred.join()
+        }
+
+        // Fetch random songs
+        launch {
+            repository.getRandomSongs(10)
+                .onSuccess { songs ->
+                    _uiState.value = _uiState.value.copy(randomSongs = songs)
+                }
+                .onFailure { /* ignore */ }
         }
     }
 

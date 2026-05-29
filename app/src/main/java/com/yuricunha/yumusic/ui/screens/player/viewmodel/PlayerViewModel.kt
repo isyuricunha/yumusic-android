@@ -69,11 +69,21 @@ class PlayerViewModel @Inject constructor(
     private fun observeTrackChanges() {
         viewModelScope.launch {
             playerConnection.uiState.collect { state ->
-                if (state.title.isNotEmpty() && state.title != lastTrackTitle) {
+                if (state.title.isNotEmpty() && state.title != lastTrackTitle && state.currentQueueIndex >= 0) {
                     lastTrackTitle = state.title
                     fetchLyrics(state.artist, state.title)
+                    // Scrobble when track changes (submission=true means 'now playing')
+                    scrobbleCurrent(state)
                 }
             }
+        }
+    }
+
+    private fun scrobbleCurrent(state: PlayerUiState) {
+        val trackId = state.trackId
+        if (trackId.isNullOrEmpty()) return
+        viewModelScope.launch {
+            repository.scrobble(trackId = trackId, submission = true)
         }
     }
 

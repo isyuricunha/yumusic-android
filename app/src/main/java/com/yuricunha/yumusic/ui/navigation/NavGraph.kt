@@ -17,6 +17,7 @@ import com.yuricunha.yumusic.ui.screens.home.HomeScreen
 import com.yuricunha.yumusic.ui.screens.library.LibraryScreen
 import com.yuricunha.yumusic.ui.screens.player.PlayerScreen
 import com.yuricunha.yumusic.ui.screens.playlist.PlaylistScreen
+import com.yuricunha.yumusic.ui.screens.radio.RadioScreen
 import com.yuricunha.yumusic.ui.screens.search.SearchScreen
 import com.yuricunha.yumusic.ui.screens.settings.SettingsScreen
 
@@ -58,6 +59,12 @@ fun NavGraph(
                     },
                     onGenreClick = { genreName ->
                         navController.navigate(Route.genre(genreName))
+                    },
+                    onFolderClick = { folderId, folderName ->
+                        navController.navigate(Route.folder(folderId, folderName))
+                    },
+                    onRadioClick = {
+                        navController.navigate(Route.RADIO)
                     },
                 )
             }
@@ -126,6 +133,12 @@ fun NavGraph(
                     onTrackClick = { trackId ->
                         navController.navigate(Route.PLAYER)
                     },
+                )
+            }
+
+            composable(Route.RADIO) {
+                RadioScreen(
+                    onBackClick = { navController.popBackStack() },
                 )
             }
 

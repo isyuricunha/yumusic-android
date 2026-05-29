@@ -22,6 +22,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Radio
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -44,7 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.BookmarkDto
 import com.yuricunha.yumusic.data.api.GenreDto
+import com.yuricunha.yumusic.data.api.NowPlayingEntry
 import com.yuricunha.yumusic.data.api.PlaylistDto
 import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
@@ -66,6 +69,7 @@ fun LibraryScreen(
     onPlaylistClick: (String, String) -> Unit = { _, _ -> },
     onGenreClick: (String) -> Unit = {},
     onFolderClick: (String, String) -> Unit = { _, _ -> },
+    onRadioClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = hiltViewModel(),
 ) {
@@ -77,6 +81,7 @@ fun LibraryScreen(
         onPlaylistClick = onPlaylistClick,
         onGenreClick = onGenreClick,
         onFolderClick = onFolderClick,
+        onRadioClick = onRadioClick,
         onRetry = viewModel::loadContent,
         getCoverArtUrl = viewModel::getCoverArtUrl,
         modifier = modifier,
@@ -91,6 +96,7 @@ fun LibraryScreenContent(
     onPlaylistClick: (String, String) -> Unit,
     onGenreClick: (String) -> Unit = {},
     onFolderClick: (String, String) -> Unit = { _, _ -> },
+    onRadioClick: () -> Unit = {},
     onRetry: () -> Unit,
     getCoverArtUrl: (String?) -> String?,
     modifier: Modifier = Modifier,
@@ -149,6 +155,10 @@ fun LibraryScreenContent(
                 val favorites = (uiState.starred as? ScreenState.Success)?.data as? List<TrackDto>
                 @Suppress("UNCHECKED_CAST")
                 val genres = (uiState.genres as? ScreenState.Success)?.data as? List<GenreDto>
+                @Suppress("UNCHECKED_CAST")
+                val bookmarks = (uiState.bookmarks as? ScreenState.Success)?.data as? List<BookmarkDto>
+                @Suppress("UNCHECKED_CAST")
+                val nowPlaying = (uiState.nowPlaying as? ScreenState.Success)?.data as? List<NowPlayingEntry>
 
                 val hasPlaylists = !playlists.isNullOrEmpty()
                 val hasArtists = !artists.isNullOrEmpty()
@@ -352,6 +362,71 @@ fun LibraryScreenContent(
                                                 Text("Files", style = MaterialTheme.typography.bodySmall, color = TextPrimary)
                                             }
                                         }
+                                        Box(
+                                            modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(SurfaceCard).clickable { onRadioClick() }.padding(horizontal = 20.dp, vertical = 16.dp),
+                                            contentAlignment = Alignment.Center,
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Icon(Icons.Filled.Radio, null, tint = PrimaryAccent, modifier = Modifier.size(28.dp))
+                                                Spacer(Modifier.height(6.dp))
+                                                Text("Radio", style = MaterialTheme.typography.bodySmall, color = TextPrimary)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Bookmarks section
+                        if (!bookmarks.isNullOrEmpty()) {
+                            item(key = "bookmarks") {
+                                Box {
+                                    Column {
+                                        Spacer(Modifier.height(24.dp))
+                                        Text("Bookmarks", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
+                                        Spacer(Modifier.height(8.dp))
+                                        bookmarks.take(5).forEach { bm ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                Icon(Icons.Filled.Star, null, tint = PrimaryAccent, modifier = Modifier.size(16.dp))
+                                                Spacer(Modifier.width(10.dp))
+                                                bm.entry?.let { entry ->
+                                                    Column(Modifier.weight(1f)) {
+                                                        Text(entry.title, style = MaterialTheme.typography.bodySmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                        Text(entry.artist ?: "", style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Now Playing section
+                        if (!nowPlaying.isNullOrEmpty()) {
+                            item(key = "nowplaying") {
+                                Box {
+                                    Column {
+                                        Spacer(Modifier.height(24.dp))
+                                        Text("Now Playing", color = TextPrimary, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 20.dp))
+                                        Spacer(Modifier.height(8.dp))
+                                        nowPlaying.take(5).forEach { np ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                Column(Modifier.weight(1f)) {
+                                                    Text(np.title, style = MaterialTheme.typography.bodySmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                                    Row {
+                                                        Text(np.artist ?: "", style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1)
+                                                        np.username?.let { Text(" · $it", style = MaterialTheme.typography.labelSmall, color = TextTertiary) }
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -359,7 +434,7 @@ fun LibraryScreenContent(
 
                         // Artists section
                         if (hasArtists) {
-                            item {
+                            item(key = "artists") {
                                 Spacer(modifier = Modifier.height(if (hasPlaylists || hasFavorites || hasGenres) 24.dp else 8.dp))
                                 Text(
                                     text = stringResource(R.string.library_section_artists),
