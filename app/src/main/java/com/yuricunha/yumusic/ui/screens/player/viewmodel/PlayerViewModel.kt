@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
 import com.yuricunha.yumusic.player.PlayerConnection
 import com.yuricunha.yumusic.player.PlayerUiState
@@ -36,6 +37,9 @@ class PlayerViewModel @Inject constructor(
     private val _showQueue = MutableStateFlow(false)
     val showQueue: StateFlow<Boolean> = _showQueue.asStateFlow()
 
+    private val _similarSongs = MutableStateFlow<List<TrackDto>>(emptyList())
+    val similarSongs: StateFlow<List<TrackDto>> = _similarSongs.asStateFlow()
+
     // ── Sleep Timer ──────────────────────────────────────────────────────
     private val _sleepTimerRemaining = MutableStateFlow<Int?>(null)
     val sleepTimerRemaining: StateFlow<Int?> = _sleepTimerRemaining.asStateFlow()
@@ -60,6 +64,11 @@ class PlayerViewModel @Inject constructor(
         _sleepTimerRemaining.value = null
     }
 
+    fun getCoverArtUrl(coverArtId: String?): String? {
+        if (coverArtId.isNullOrEmpty()) return null
+        return repository.getCoverArtUrl(coverArtId)
+    }
+
     private var lastTrackTitle: String? = null
 
     init {
@@ -72,8 +81,10 @@ class PlayerViewModel @Inject constructor(
                 if (state.title.isNotEmpty() && state.title != lastTrackTitle && state.currentQueueIndex >= 0) {
                     lastTrackTitle = state.title
                     fetchLyrics(state.artist, state.title)
-                    // Scrobble when track changes (submission=true means 'now playing')
+                    // Scrobble when track changes
                     scrobbleCurrent(state)
+                    // Fetch similar songs
+                    fetchSimilarSongs(state.trackId)
                 }
             }
         }
@@ -84,6 +95,15 @@ class PlayerViewModel @Inject constructor(
         if (trackId.isNullOrEmpty()) return
         viewModelScope.launch {
             repository.scrobble(trackId = trackId, submission = true)
+        }
+    }
+
+    private fun fetchSimilarSongs(trackId: String?) {
+        if (trackId.isNullOrEmpty()) return
+        viewModelScope.launch {
+            repository.getSimilarSongs(trackId, 5)
+                .onSuccess { songs -> _similarSongs.value = songs }
+                .onFailure { _similarSongs.value = emptyList() }
         }
     }
 

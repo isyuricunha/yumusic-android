@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -51,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.common.Player
 import com.yuricunha.yumusic.R
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
 import com.yuricunha.yumusic.ui.screens.player.viewmodel.PlayerViewModel
 import com.yuricunha.yumusic.ui.theme.Background
@@ -70,6 +73,7 @@ fun PlayerScreen(
     val playerState by viewModel.playerState.collectAsState()
     val lyrics by viewModel.lyrics.collectAsState()
     val showLyrics by viewModel.showLyrics.collectAsState()
+    val similarSongs by viewModel.similarSongs.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.connect()
@@ -85,6 +89,7 @@ fun PlayerScreen(
         repeatMode = playerState.repeatMode,
         lyrics = lyrics,
         showLyrics = showLyrics,
+        similarSongs = similarSongs,
         onToggleLyrics = viewModel::toggleLyrics,
         onPlayPauseClick = viewModel::playPause,
         onNextClick = viewModel::skipToNext,
@@ -93,6 +98,7 @@ fun PlayerScreen(
         onToggleShuffle = viewModel::toggleShuffle,
         onCycleRepeat = viewModel::cycleRepeatMode,
         onBackClick = onBackClick,
+        getCoverArtUrl = viewModel::getCoverArtUrl,
         modifier = modifier,
     )
 }
@@ -109,6 +115,7 @@ fun PlayerScreenContent(
     repeatMode: Int = Player.REPEAT_MODE_OFF,
     lyrics: String? = null,
     showLyrics: Boolean = false,
+    similarSongs: List<TrackDto> = emptyList(),
     onToggleLyrics: () -> Unit = {},
     onPlayPauseClick: () -> Unit,
     onNextClick: () -> Unit,
@@ -117,6 +124,7 @@ fun PlayerScreenContent(
     onToggleShuffle: () -> Unit = {},
     onCycleRepeat: () -> Unit = {},
     onBackClick: () -> Unit,
+    getCoverArtUrl: (String?) -> String? = { null },
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -313,6 +321,36 @@ fun PlayerScreenContent(
                     tint = if (repeatMode != Player.REPEAT_MODE_OFF) PrimaryAccent else TextSecondary,
                     modifier = Modifier.size(20.dp),
                 )
+            }
+        }
+
+        if (similarSongs.isNotEmpty()) {
+            Text(
+                text = "Similar Songs",
+                style = MaterialTheme.typography.titleSmall,
+                color = TextPrimary,
+                modifier = Modifier.padding(start = 24.dp, bottom = 8.dp),
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                similarSongs.take(10).forEach { song ->
+                    Column(modifier = Modifier.width(120.dp)) {
+                        AlbumArt(
+                            coverArtUrl = song.coverArt?.let { getCoverArtUrl(it) },
+                            contentDescription = song.title,
+                            modifier = Modifier.size(120.dp),
+                            cornerRadius = 4.dp,
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(song.title, style = MaterialTheme.typography.labelSmall, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        song.artist?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1) }
+                    }
+                }
             }
         }
 

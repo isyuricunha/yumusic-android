@@ -46,6 +46,7 @@ import coil3.compose.AsyncImage
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.AlbumDto
 import com.yuricunha.yumusic.data.api.ArtistDto
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
 import com.yuricunha.yumusic.ui.screens.home.viewmodel.HomeViewModel
 import com.yuricunha.yumusic.ui.theme.Background
@@ -99,10 +100,12 @@ fun HomeScreen(
                 val artists = (uiState.artists as? ScreenState.Success)?.data as? List<ArtistDto>
                 @Suppress("UNCHECKED_CAST")
                 val randomAlbums = (uiState.randomAlbums as? ScreenState.Success)?.data as? List<AlbumDto>
+                val randomSongs = uiState.randomSongs
 
                 HomeContent(
                     artists = artists ?: emptyList(),
                     randomAlbums = randomAlbums ?: emptyList(),
+                    randomSongs = randomSongs,
                     onArtistClick = onArtistClick,
                     onAlbumClick = onAlbumClick,
                     onSettingsClick = onSettingsClick,
@@ -118,6 +121,7 @@ fun HomeScreen(
 private fun HomeContent(
     artists: List<ArtistDto>,
     randomAlbums: List<AlbumDto>,
+    randomSongs: List<TrackDto> = emptyList(),
     onArtistClick: (String) -> Unit,
     onAlbumClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
@@ -362,6 +366,47 @@ private fun HomeContent(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // Random Songs section
+        if (randomSongs.isNotEmpty()) {
+            item {
+                Box {
+                    Column {
+                        Spacer(Modifier.height(24.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text("Random Songs", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                            Text("${randomSongs.size} tracks", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                        }
+                    }
+                }
+            }
+            randomSongs.take(5).forEach { song ->
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AlbumArt(
+                            coverArtUrl = getCoverArtUrl(song.coverArt),
+                            contentDescription = song.title,
+                            modifier = Modifier.size(40.dp),
+                            cornerRadius = 4.dp,
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(song.title, style = MaterialTheme.typography.bodyMedium, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            song.artist?.let { Text(it, style = MaterialTheme.typography.labelSmall, color = TextTertiary, maxLines = 1) }
+                        }
+                        val dur = song.duration ?: 0
+                        Text("${dur / 60}:${(dur % 60).toString().padStart(2, '0')}", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
                     }
                 }
             }
