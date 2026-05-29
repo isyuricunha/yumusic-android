@@ -41,6 +41,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.data.api.PlaylistDto
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.ui.components.AlbumArt
 import com.yuricunha.yumusic.ui.screens.library.viewmodel.LibraryUiState
 import com.yuricunha.yumusic.ui.screens.library.viewmodel.LibraryViewModel
@@ -133,11 +134,14 @@ fun LibraryScreenContent(
                 val playlists = (uiState.playlists as? ScreenState.Success)?.data as? List<PlaylistDto>
                 @Suppress("UNCHECKED_CAST")
                 val artists = (uiState.artists as? ScreenState.Success)?.data as? List<ArtistDto>
+                @Suppress("UNCHECKED_CAST")
+                val favorites = (uiState.starred as? ScreenState.Success)?.data as? List<TrackDto>
 
                 val hasPlaylists = !playlists.isNullOrEmpty()
                 val hasArtists = !artists.isNullOrEmpty()
+                val hasFavorites = !favorites.isNullOrEmpty()
 
-                if (!hasPlaylists && !hasArtists) {
+                if (!hasPlaylists && !hasArtists && !hasFavorites) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center,
@@ -208,10 +212,70 @@ fun LibraryScreenContent(
                             }
                         }
 
+                        // Favorites section
+                        if (hasFavorites) {
+                            item {
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 20.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = "Favorites",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = TextPrimary,
+                                    )
+                                    Text(
+                                        text = "${favorites.size} tracks",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = TextTertiary,
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                LazyRow(
+                                    contentPadding = PaddingValues(horizontal = 20.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                ) {
+                                    items(favorites.take(10)) { track ->
+                                        Column(modifier = Modifier.width(160.dp)) {
+                                            AlbumArt(
+                                                coverArtUrl = getCoverArtUrl(track.coverArt),
+                                                contentDescription = track.title,
+                                                modifier = Modifier
+                                                    .width(160.dp)
+                                                    .height(160.dp),
+                                                cornerRadius = 6.dp,
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = track.title,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = TextPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                            )
+                                            track.artist?.let {
+                                                Text(
+                                                    text = it,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = TextTertiary,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // Artists section
                         if (hasArtists) {
                             item {
-                                Spacer(modifier = Modifier.height(if (hasPlaylists) 24.dp else 8.dp))
+                                Spacer(modifier = Modifier.height(if (hasPlaylists || hasFavorites) 24.dp else 8.dp))
                                 Text(
                                     text = stringResource(R.string.library_section_artists),
                                     style = MaterialTheme.typography.titleMedium,

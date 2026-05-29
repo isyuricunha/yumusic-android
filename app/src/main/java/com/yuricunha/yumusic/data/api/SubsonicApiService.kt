@@ -123,4 +123,13 @@ interface SubsonicApiService {
         @Query("c") client: String = CLIENT_NAME,
         @Query("f") format: String = "json",
     ): SubsonicResponse<LyricsResponse>
+
+    @GET("rest/getStarred")
+    suspend fun getStarred(
+        @Query("u") username: String,
+        @Query("p") password: String,
+        @Query("v") version: String = API_VERSION,
+        @Query("c") client: String = CLIENT_NAME,
+        @Query("f") format: String = "json",
+    ): SubsonicResponse<StarredResponse>
 }

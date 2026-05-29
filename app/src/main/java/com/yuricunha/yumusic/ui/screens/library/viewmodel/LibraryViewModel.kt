@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.yuricunha.yumusic.R
 import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.data.api.PlaylistDto
+import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.repository.SettingsRepository
 import com.yuricunha.yumusic.data.repository.SubsonicRepository
 import com.yuricunha.yumusic.util.ScreenState
@@ -20,6 +21,7 @@ import javax.inject.Inject
 data class LibraryUiState(
     val artists: ScreenState<List<ArtistDto>> = ScreenState.Loading,
     val playlists: ScreenState<List<PlaylistDto>> = ScreenState.Loading,
+    val starred: ScreenState<List<TrackDto>> = ScreenState.Loading,
 )
 
 @HiltViewModel
@@ -49,9 +51,10 @@ class LibraryViewModel @Inject constructor(
             _uiState.value = LibraryUiState(
                 artists = ScreenState.Loading,
                 playlists = ScreenState.Loading,
+                starred = ScreenState.Loading,
             )
 
-            // Fetch artists and playlists concurrently
+            // Fetch artists, playlists, and starred concurrently
             launch {
                 repository.getArtists()
                     .onSuccess { artists ->
@@ -71,6 +74,18 @@ class LibraryViewModel @Inject constructor(
                     }
                     .onFailure {
                         _uiState.value = _uiState.value.copy(playlists = ScreenState.Success(emptyList()))
+                    }
+            }
+
+            launch {
+                repository.getStarred()
+                    .onSuccess { starred ->
+                        _uiState.value = _uiState.value.copy(
+                            starred = ScreenState.Success(starred.songs ?: emptyList())
+                        )
+                    }
+                    .onFailure {
+                        _uiState.value = _uiState.value.copy(starred = ScreenState.Success(emptyList()))
                     }
             }
         }

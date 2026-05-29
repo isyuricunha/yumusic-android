@@ -5,6 +5,7 @@ import com.yuricunha.yumusic.data.api.ArtistDto
 import com.yuricunha.yumusic.data.api.ArtistInfo
 import com.yuricunha.yumusic.data.api.LyricsData
 import com.yuricunha.yumusic.data.api.PlaylistDto
+import com.yuricunha.yumusic.data.api.StarredItems
 import com.yuricunha.yumusic.data.api.SubsonicApiService
 import com.yuricunha.yumusic.data.api.TrackDto
 import com.yuricunha.yumusic.data.db.AlbumDao
@@ -292,6 +293,24 @@ class SubsonicRepository @Inject constructor(
             if (error != null) return Result.failure(Exception(error.message))
             val lyrics = response.response?.lyrics
             if (lyrics != null && !lyrics.value.isNullOrEmpty()) Result.success(lyrics) else Result.failure(Exception("No lyrics"))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // ── Starred Items ────────────────────────────────────────────────────
+
+    suspend fun getStarred(): Result<StarredItems> {
+        val config = getConfig()
+        if (!config.isConfigured) return Result.failure(IllegalStateException("Server not configured"))
+        return try {
+            val response = apiService.getStarred(
+                username = config.username,
+                password = config.password,
+            )
+            val error = response.response?.error
+            if (error != null) return Result.failure(Exception(error.message))
+            Result.success(response.response?.starred ?: StarredItems())
         } catch (e: Exception) {
             Result.failure(e)
         }

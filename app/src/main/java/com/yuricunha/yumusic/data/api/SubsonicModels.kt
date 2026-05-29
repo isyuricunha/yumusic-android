@@ -189,3 +189,17 @@ data class LyricsData(
     @SerializedName("title") val title: String?,
     @SerializedName("value") val value: String?,
 )
+
+// ── getStarred ──────────────────────────────────────────────────────────
+// JSON: { "subsonic-response": { "status": "ok", "starred": { "song": [...] } } }
+data class StarredResponse(
+    @SerializedName("status") val status: String?,
+    @SerializedName("error") val error: SubsonicError?,
+    @SerializedName("starred") val starred: StarredItems?,
+)
+
+data class StarredItems(
+    @SerializedName("artist") val artists: List<ArtistDto>? = null,
+    @SerializedName("album") val albums: List<AlbumDto>? = null,
+    @SerializedName("song") val songs: List<TrackDto>? = null,
+)
